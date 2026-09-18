@@ -1,7 +1,7 @@
 import type {RuntimeLike, RuntimeThread} from './runtime-types.js';
 
 /**
- * Runs `define function` hats as named functions (docs/block-catalog.ja.md §4.8).
+ * Runs `define function` hats as named functions.
  *
  * A call starts every `define function` hat; the hat predicate lets only the script whose NAME
  * matches the invocation being started continue, and binds that thread to the invocation. Extension
@@ -120,7 +120,7 @@ export class FunctionDispatcher {
   private afterStep(): void {
     this.step += 1;
     const starting = this.starting;
-    // A started hat is evaluated within the current or the next step (§4.8.5.1 measurements).
+    // A started hat is evaluated within the current or the next step (measured with bench/).
     if (starting && this.step - starting.startedAtStep > 2) {
       this.settle(starting, new Error(`Function ${starting.name} did not start. Is its script already running?`));
     }

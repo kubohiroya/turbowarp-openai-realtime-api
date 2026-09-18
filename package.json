@@ -26,7 +26,6 @@
   "type": "module",
   "files": [
     "dist/",
-    "docs/",
     "schemas/",
     "src/",
     "README.md",

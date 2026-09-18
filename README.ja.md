@@ -275,8 +275,6 @@ pnpm check
 SCRATCH_VM_PATH=/path/to/TurboWarp/scratch-vm pnpm test
 ```
 
-サーバ層ブロックの設計メモは[`docs/block-catalog.ja.md`](docs/block-catalog.ja.md)、関連研究は[`docs/related-work.ja.md`](docs/related-work.ja.md)にあります。
-
 ## ライセンス
 
 [Mozilla Public License 2.0](LICENSE) (SPDX: `MPL-2.0`).

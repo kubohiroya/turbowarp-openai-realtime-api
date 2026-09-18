@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/index.html'
+      - 'site/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -26,14 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      # Publish only the user guide. Design notes under docs/ stay in the repository.
-      - name: Collect the published files
-        run: |
-          mkdir -p _site
-          cp docs/index.html _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

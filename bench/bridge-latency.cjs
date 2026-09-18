@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Measures the bridge-mode cost model of docs/block-catalog.ja.md §4.8.5.1 on a headless TurboWarp VM.
+// Measures the bridge-mode cost of awaiting blocks and function-value calls on a headless TurboWarp VM.
 //
 //   SCRATCH_VM_PATH=/path/to/TurboWarp/scratch-vm node bench/bridge-latency.cjs
 //
@@ -7,7 +7,7 @@
 //   sync     extension command that returns a plain value           (baseline, no Promise)
 //   rpc      extension command that returns an already-resolved Promise (effect block via RPC, zero I/O)
 //   rpc1ms   extension command whose Promise resolves after setTimeout(1ms) (RPC with ~1ms I/O)
-//   call     function-value call: starts a `define function` hat and waits for its `return` (§4.8.5)
+//   call     function-value call: starts a `define function` hat and waits for its `return`
 // Stepping modes:
 //   fps=N    VM's own frame loop (setInterval at 1000/N ms), as in the TurboWarp editor
 //   manual   harness calls runtime._step() itself and continues after setImmediate (headless test harness)

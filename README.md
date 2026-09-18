@@ -299,8 +299,6 @@ To also run the integration test on a real headless TurboWarp VM, point `SCRATCH
 SCRATCH_VM_PATH=/path/to/TurboWarp/scratch-vm pnpm test
 ```
 
-Design notes for the server-side block subset live in [`docs/block-catalog.ja.md`](docs/block-catalog.ja.md) and [`docs/related-work.ja.md`](docs/related-work.ja.md).
-
 ## License
 
 [Mozilla Public License 2.0](LICENSE) (SPDX: `MPL-2.0`).

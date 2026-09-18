@@ -8,3 +8,6 @@ coverage/
 .claude/
 .playwright-mcp/
 .serena/
+
+# Private design notes are kept outside the repository.
+docs/
