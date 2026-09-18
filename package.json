@@ -48,7 +48,7 @@
     "lint": "eslint src tests scripts vite.config.ts eslint.config.ts",
     "test": "vitest run",
     "docs": "node scripts/generate-readme.ts",
-    "docs:check": "pnpm run docs && git diff --exit-code -- README.md",
+    "docs:check": "node scripts/generate-readme.ts --check",
     "repo:check": "node scripts/check-repo.ts",
     "pack:check": "npm pack --dry-run --ignore-scripts",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run docs:check && pnpm run check:dist && pnpm run repo:check && pnpm run pack:check",

@@ -60,7 +60,188 @@ define function [get_score] description [Returns the player's score.] args schem
 return (join [{"score":] (join (score) [}]))
 ```
 
-ブロックの一覧は[英語版README](README.md#block-reference)を参照してください。
+## ブロックリファレンス
+
+ブロックリファレンスは[`src/block-definitions.json`](src/block-definitions.json)から生成しています。生成された部分は手で編集しないでください。ブロックの表示文言はTurboWarp上の英語表記のままです。
+
+<!-- BEGIN GENERATED BLOCKS -->
+
+### `configure local relay [ENDPOINT]`
+
+localhostで動くcapability-proxy中継のループバックoriginを設定します。以前のペアリングは消去されます。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `configureRelay` |
+| `ENDPOINT` | 文字列, 既定値: `http://127.0.0.1:8787` |
+
+### `pair local relay with one-time code [CODE]`
+
+中継が表示した8桁のコードを、メモリだけに保持するセッションtokenと交換します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `pairRelay` |
+| `CODE` | 文字列, 既定値: `00000000` |
+
+### `local relay paired?`
+
+有効期限内の中継セッションtokenをメモリに保持しているかを返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 真偽値ブロック |
+| Opcode | `isRelayPaired` |
+
+### `set instructions to [TEXT]`
+
+次の接続で使うシステムへの指示（instructions）を設定します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `setInstructions` |
+| `TEXT` | 文字列, 既定値: `You are a friendly assistant. Answer briefly.` |
+
+### `set voice to [VOICE]`
+
+次の接続で使う応答の声を設定します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `setVoice` |
+| `VOICE` | 文字列, 既定値: `marin`, 選択肢: `alloy`, `ash`, `ballad`, `cedar`, `coral`, `echo`, `marin`, `sage`, `shimmer`, `verse` |
+
+### `set output to [MODE]`
+
+次の接続で、音声で応答するかテキストだけで応答するかを選びます。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `setOutputMode` |
+| `MODE` | 文字列, 既定値: `audio`, 選択肢: `audio`, `text` |
+
+### `connect to Realtime with microphone [MICROPHONE]`
+
+中継を通じて一時キーを発行し、WebRTCのセッションを開きます。ツールとして公開した関数はモデルから呼べるようになります。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `connect` |
+| `MICROPHONE` | 文字列, 既定値: `on`, 選択肢: `on`, `off` |
+
+### `disconnect from Realtime`
+
+WebRTCのセッションを閉じてマイクを止め、実行中の関数呼び出しを失敗させます。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `disconnect` |
+
+### `connected to Realtime?`
+
+Realtimeのセッションが開いているかを返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 真偽値ブロック |
+| Opcode | `isConnected` |
+
+### `Realtime connection state`
+
+disconnected、connecting、connected、failedのいずれかを返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 値ブロック |
+| Opcode | `connectionState` |
+
+### `send text [TEXT]`
+
+利用者のテキストメッセージを会話に追加し、応答を要求します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `sendText` |
+| `TEXT` | 文字列, 既定値: `Hello!` |
+
+### `when assistant finishes responding`
+
+アシスタントのテキストまたは音声の書き起こしを含む応答が完了したときに起動します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | ハット |
+| Opcode | `whenResponseDone` |
+
+### `last assistant response`
+
+直近に完了したアシスタントの応答のテキスト、または音声の書き起こしを返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 値ブロック |
+| Opcode | `lastResponseText` |
+
+### `define function [NAME] description [DESCRIPTION] args schema [SCHEMA] export as [EXPORT]`
+
+関数を定義します。export asをtoolにすると、モデルから呼べるツールになります。NAME、DESCRIPTION、SCHEMAには文字列を直接書く必要があります。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | ハット |
+| Opcode | `defineFunction` |
+| `NAME` | 文字列, 既定値: `get_score` |
+| `DESCRIPTION` | 文字列, 既定値: `Returns the player's current score.` |
+| `SCHEMA` | 文字列, 既定値: `{"type":"object","properties":{}}` |
+| `EXPORT` | 文字列, 既定値: `tool`, 選択肢: `tool`, `none` |
+
+### `function argument [PATH]`
+
+関数の中で、cityやitems.0.nameのようなドット区切りのパスにある引数を返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 値ブロック |
+| Opcode | `functionArgument` |
+| `PATH` | 文字列, 既定値: `city` |
+
+### `function arguments JSON`
+
+関数の中で、すべての引数をJSONテキストとして返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 値ブロック |
+| Opcode | `functionArgumentsJson` |
+
+### `return [VALUE]`
+
+関数の中で値を返し、スクリプトを終了します。JSONテキストはJSONとして、それ以外のテキストは文字列として返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `returnValue` |
+| `VALUE` | 文字列, 既定値: `{"score":10}` |
+
+### `last Realtime error`
+
+直近の中継、接続、APIのエラーを返します。エラーがなければ空文字列を返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 値ブロック |
+| Opcode | `lastError` |
+
+<!-- END GENERATED BLOCKS -->
 
 ## 重要な動作
 

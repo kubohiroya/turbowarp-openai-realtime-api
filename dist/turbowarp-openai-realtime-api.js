@@ -27,6 +27,7 @@
   			"blockType": "COMMAND",
   			"text": "configure local relay [ENDPOINT]",
   			"description": "Sets the loopback origin of the local capability-proxy relay. Clears any previous pairing.",
+  			"descriptionJa": "localhostで動くcapability-proxy中継のループバックoriginを設定します。以前のペアリングは消去されます。",
   			"arguments": { "ENDPOINT": {
   				"type": "STRING",
   				"defaultValue": "http://127.0.0.1:8787"
@@ -37,6 +38,7 @@
   			"blockType": "COMMAND",
   			"text": "pair local relay with one-time code [CODE]",
   			"description": "Exchanges the eight-digit code printed by the relay for a session token kept only in memory.",
+  			"descriptionJa": "中継が表示した8桁のコードを、メモリだけに保持するセッションtokenと交換します。",
   			"arguments": { "CODE": {
   				"type": "STRING",
   				"defaultValue": "00000000"
@@ -47,6 +49,7 @@
   			"blockType": "BOOLEAN",
   			"text": "local relay paired?",
   			"description": "Reports whether an unexpired relay session token is held in memory.",
+  			"descriptionJa": "有効期限内の中継セッションtokenをメモリに保持しているかを返します。",
   			"arguments": {}
   		},
   		{
@@ -54,6 +57,7 @@
   			"blockType": "COMMAND",
   			"text": "set instructions to [TEXT]",
   			"description": "Sets the system instructions used by the next connection.",
+  			"descriptionJa": "次の接続で使うシステムへの指示（instructions）を設定します。",
   			"arguments": { "TEXT": {
   				"type": "STRING",
   				"defaultValue": "You are a friendly assistant. Answer briefly."
@@ -64,6 +68,7 @@
   			"blockType": "COMMAND",
   			"text": "set voice to [VOICE]",
   			"description": "Sets the output voice used by the next connection.",
+  			"descriptionJa": "次の接続で使う応答の声を設定します。",
   			"arguments": { "VOICE": {
   				"type": "STRING",
   				"menu": "voices",
@@ -75,6 +80,7 @@
   			"blockType": "COMMAND",
   			"text": "set output to [MODE]",
   			"description": "Chooses spoken audio or text-only responses for the next connection.",
+  			"descriptionJa": "次の接続で、音声で応答するかテキストだけで応答するかを選びます。",
   			"arguments": { "MODE": {
   				"type": "STRING",
   				"menu": "outputModes",
@@ -86,6 +92,7 @@
   			"blockType": "COMMAND",
   			"text": "connect to Realtime with microphone [MICROPHONE]",
   			"description": "Mints an ephemeral key through the relay and opens a WebRTC session. Exported functions become tools.",
+  			"descriptionJa": "中継を通じて一時キーを発行し、WebRTCのセッションを開きます。ツールとして公開した関数はモデルから呼べるようになります。",
   			"arguments": { "MICROPHONE": {
   				"type": "STRING",
   				"menu": "onOff",
@@ -97,6 +104,7 @@
   			"blockType": "COMMAND",
   			"text": "disconnect from Realtime",
   			"description": "Closes the WebRTC session, stops the microphone, and fails pending function calls.",
+  			"descriptionJa": "WebRTCのセッションを閉じてマイクを止め、実行中の関数呼び出しを失敗させます。",
   			"arguments": {}
   		},
   		{
@@ -104,6 +112,7 @@
   			"blockType": "BOOLEAN",
   			"text": "connected to Realtime?",
   			"description": "Reports whether the Realtime session is open.",
+  			"descriptionJa": "Realtimeのセッションが開いているかを返します。",
   			"arguments": {}
   		},
   		{
@@ -111,6 +120,7 @@
   			"blockType": "REPORTER",
   			"text": "Realtime connection state",
   			"description": "Reports disconnected, connecting, connected, or failed.",
+  			"descriptionJa": "disconnected、connecting、connected、failedのいずれかを返します。",
   			"arguments": {}
   		},
   		{
@@ -118,6 +128,7 @@
   			"blockType": "COMMAND",
   			"text": "send text [TEXT]",
   			"description": "Adds a user text message to the conversation and asks for a response.",
+  			"descriptionJa": "利用者のテキストメッセージを会話に追加し、応答を要求します。",
   			"arguments": { "TEXT": {
   				"type": "STRING",
   				"defaultValue": "Hello!"
@@ -128,6 +139,7 @@
   			"blockType": "HAT",
   			"text": "when assistant finishes responding",
   			"description": "Starts when a response that contains assistant text or transcript completes.",
+  			"descriptionJa": "アシスタントのテキストまたは音声の書き起こしを含む応答が完了したときに起動します。",
   			"arguments": {}
   		},
   		{
@@ -135,6 +147,7 @@
   			"blockType": "REPORTER",
   			"text": "last assistant response",
   			"description": "Reports the text or audio transcript of the most recent completed assistant response.",
+  			"descriptionJa": "直近に完了したアシスタントの応答のテキスト、または音声の書き起こしを返します。",
   			"arguments": {}
   		},
   		{
@@ -142,6 +155,7 @@
   			"blockType": "HAT",
   			"text": "define function [NAME] description [DESCRIPTION] args schema [SCHEMA] export as [EXPORT]",
   			"description": "Defines a function value. With export as tool, the model can call it; NAME, DESCRIPTION, and SCHEMA must be literal text.",
+  			"descriptionJa": "関数を定義します。export asをtoolにすると、モデルから呼べるツールになります。NAME、DESCRIPTION、SCHEMAには文字列を直接書く必要があります。",
   			"arguments": {
   				"NAME": {
   					"type": "STRING",
@@ -167,6 +181,7 @@
   			"blockType": "REPORTER",
   			"text": "function argument [PATH]",
   			"description": "Inside a function, reports the argument at a dotted path such as city or items.0.name.",
+  			"descriptionJa": "関数の中で、cityやitems.0.nameのようなドット区切りのパスにある引数を返します。",
   			"arguments": { "PATH": {
   				"type": "STRING",
   				"defaultValue": "city"
@@ -177,6 +192,7 @@
   			"blockType": "REPORTER",
   			"text": "function arguments JSON",
   			"description": "Inside a function, reports all arguments as JSON text.",
+  			"descriptionJa": "関数の中で、すべての引数をJSONテキストとして返します。",
   			"arguments": {}
   		},
   		{
@@ -184,6 +200,7 @@
   			"blockType": "COMMAND",
   			"text": "return [VALUE]",
   			"description": "Inside a function, returns a value and ends the script. JSON text is returned as JSON; other text is returned as a string.",
+  			"descriptionJa": "関数の中で値を返し、スクリプトを終了します。JSONテキストはJSONとして、それ以外のテキストは文字列として返します。",
   			"arguments": { "VALUE": {
   				"type": "STRING",
   				"defaultValue": "{\"score\":10}"
@@ -194,6 +211,7 @@
   			"blockType": "REPORTER",
   			"text": "last Realtime error",
   			"description": "Reports the most recent relay, connection, or API error, or an empty string.",
+  			"descriptionJa": "直近の中継、接続、APIのエラーを返します。エラーがなければ空文字列を返します。",
   			"arguments": {}
   		}
   	],

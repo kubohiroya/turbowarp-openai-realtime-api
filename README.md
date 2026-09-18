@@ -127,7 +127,7 @@ Sets the output voice used by the next connection.
 |---|---|
 | Type | Command |
 | Opcode | `setVoice` |
-| `VOICE` | String, default: `marin` |
+| `VOICE` | String, default: `marin`, choices: `alloy`, `ash`, `ballad`, `cedar`, `coral`, `echo`, `marin`, `sage`, `shimmer`, `verse` |
 
 ### `set output to [MODE]`
 
@@ -137,7 +137,7 @@ Chooses spoken audio or text-only responses for the next connection.
 |---|---|
 | Type | Command |
 | Opcode | `setOutputMode` |
-| `MODE` | String, default: `audio` |
+| `MODE` | String, default: `audio`, choices: `audio`, `text` |
 
 ### `connect to Realtime with microphone [MICROPHONE]`
 
@@ -147,7 +147,7 @@ Mints an ephemeral key through the relay and opens a WebRTC session. Exported fu
 |---|---|
 | Type | Command |
 | Opcode | `connect` |
-| `MICROPHONE` | String, default: `on` |
+| `MICROPHONE` | String, default: `on`, choices: `on`, `off` |
 
 ### `disconnect from Realtime`
 
@@ -215,7 +215,7 @@ Defines a function value. With export as tool, the model can call it; NAME, DESC
 | `NAME` | String, default: `get_score` |
 | `DESCRIPTION` | String, default: `Returns the player's current score.` |
 | `SCHEMA` | String, default: `{"type":"object","properties":{}}` |
-| `EXPORT` | String, default: `tool` |
+| `EXPORT` | String, default: `tool`, choices: `tool`, `none` |
 
 ### `function argument [PATH]`
 
