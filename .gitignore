@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+*.log
+.DS_Store
+
+# Tool artifacts. Listed here so a repository generated from this template starts
+# with them ignored, without depending on whichever machine generates it.
+.claude/
+.playwright-mcp/
+.serena/

@@ -1,0 +1,172 @@
+{
+  "extensionName": "OpenAI Realtime",
+  "blocks": [
+    {
+      "opcode": "configureRelay",
+      "blockType": "COMMAND",
+      "text": "configure local relay [ENDPOINT]",
+      "description": "Sets the loopback origin of the local capability-proxy relay. Clears any previous pairing.",
+      "arguments": {
+        "ENDPOINT": {"type": "STRING", "defaultValue": "http://127.0.0.1:8787"}
+      }
+    },
+    {
+      "opcode": "pairRelay",
+      "blockType": "COMMAND",
+      "text": "pair local relay with one-time code [CODE]",
+      "description": "Exchanges the eight-digit code printed by the relay for a session token kept only in memory.",
+      "arguments": {
+        "CODE": {"type": "STRING", "defaultValue": "00000000"}
+      }
+    },
+    {
+      "opcode": "isRelayPaired",
+      "blockType": "BOOLEAN",
+      "text": "local relay paired?",
+      "description": "Reports whether an unexpired relay session token is held in memory.",
+      "arguments": {}
+    },
+    {
+      "opcode": "setInstructions",
+      "blockType": "COMMAND",
+      "text": "set instructions to [TEXT]",
+      "description": "Sets the system instructions used by the next connection.",
+      "arguments": {
+        "TEXT": {"type": "STRING", "defaultValue": "You are a friendly assistant. Answer briefly."}
+      }
+    },
+    {
+      "opcode": "setVoice",
+      "blockType": "COMMAND",
+      "text": "set voice to [VOICE]",
+      "description": "Sets the output voice used by the next connection.",
+      "arguments": {
+        "VOICE": {"type": "STRING", "menu": "voices", "defaultValue": "marin"}
+      }
+    },
+    {
+      "opcode": "setOutputMode",
+      "blockType": "COMMAND",
+      "text": "set output to [MODE]",
+      "description": "Chooses spoken audio or text-only responses for the next connection.",
+      "arguments": {
+        "MODE": {"type": "STRING", "menu": "outputModes", "defaultValue": "audio"}
+      }
+    },
+    {
+      "opcode": "connect",
+      "blockType": "COMMAND",
+      "text": "connect to Realtime with microphone [MICROPHONE]",
+      "description": "Mints an ephemeral key through the relay and opens a WebRTC session. Exported functions become tools.",
+      "arguments": {
+        "MICROPHONE": {"type": "STRING", "menu": "onOff", "defaultValue": "on"}
+      }
+    },
+    {
+      "opcode": "disconnect",
+      "blockType": "COMMAND",
+      "text": "disconnect from Realtime",
+      "description": "Closes the WebRTC session, stops the microphone, and fails pending function calls.",
+      "arguments": {}
+    },
+    {
+      "opcode": "isConnected",
+      "blockType": "BOOLEAN",
+      "text": "connected to Realtime?",
+      "description": "Reports whether the Realtime session is open.",
+      "arguments": {}
+    },
+    {
+      "opcode": "connectionState",
+      "blockType": "REPORTER",
+      "text": "Realtime connection state",
+      "description": "Reports disconnected, connecting, connected, or failed.",
+      "arguments": {}
+    },
+    {
+      "opcode": "sendText",
+      "blockType": "COMMAND",
+      "text": "send text [TEXT]",
+      "description": "Adds a user text message to the conversation and asks for a response.",
+      "arguments": {
+        "TEXT": {"type": "STRING", "defaultValue": "Hello!"}
+      }
+    },
+    {
+      "opcode": "whenResponseDone",
+      "blockType": "HAT",
+      "text": "when assistant finishes responding",
+      "description": "Starts when a response that contains assistant text or transcript completes.",
+      "arguments": {}
+    },
+    {
+      "opcode": "lastResponseText",
+      "blockType": "REPORTER",
+      "text": "last assistant response",
+      "description": "Reports the text or audio transcript of the most recent completed assistant response.",
+      "arguments": {}
+    },
+    {
+      "opcode": "defineFunction",
+      "blockType": "HAT",
+      "text": "define function [NAME] description [DESCRIPTION] args schema [SCHEMA] export as [EXPORT]",
+      "description": "Defines a function value. With export as tool, the model can call it; NAME, DESCRIPTION, and SCHEMA must be literal text.",
+      "arguments": {
+        "NAME": {"type": "STRING", "defaultValue": "get_score"},
+        "DESCRIPTION": {"type": "STRING", "defaultValue": "Returns the player's current score."},
+        "SCHEMA": {"type": "STRING", "defaultValue": "{\"type\":\"object\",\"properties\":{}}"},
+        "EXPORT": {"type": "STRING", "menu": "exportModes", "defaultValue": "tool"}
+      }
+    },
+    {
+      "opcode": "functionArgument",
+      "blockType": "REPORTER",
+      "text": "function argument [PATH]",
+      "description": "Inside a function, reports the argument at a dotted path such as city or items.0.name.",
+      "arguments": {
+        "PATH": {"type": "STRING", "defaultValue": "city"}
+      }
+    },
+    {
+      "opcode": "functionArgumentsJson",
+      "blockType": "REPORTER",
+      "text": "function arguments JSON",
+      "description": "Inside a function, reports all arguments as JSON text.",
+      "arguments": {}
+    },
+    {
+      "opcode": "returnValue",
+      "blockType": "COMMAND",
+      "text": "return [VALUE]",
+      "description": "Inside a function, returns a value and ends the script. JSON text is returned as JSON; other text is returned as a string.",
+      "arguments": {
+        "VALUE": {"type": "STRING", "defaultValue": "{\"score\":10}"}
+      }
+    },
+    {
+      "opcode": "lastError",
+      "blockType": "REPORTER",
+      "text": "last Realtime error",
+      "description": "Reports the most recent relay, connection, or API error, or an empty string.",
+      "arguments": {}
+    }
+  ],
+  "menus": {
+    "voices": {
+      "acceptReporters": true,
+      "items": ["alloy", "ash", "ballad", "cedar", "coral", "echo", "marin", "sage", "shimmer", "verse"]
+    },
+    "outputModes": {
+      "acceptReporters": false,
+      "items": ["audio", "text"]
+    },
+    "onOff": {
+      "acceptReporters": false,
+      "items": ["on", "off"]
+    },
+    "exportModes": {
+      "acceptReporters": false,
+      "items": ["tool", "none"]
+    }
+  }
+}

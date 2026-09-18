@@ -1,0 +1,180 @@
+{
+  "formatVersion": 1,
+  "id": "kubohiroyaopenairealtime",
+  "blocks": [
+    {
+      "opcode": "configureRelay",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "ENDPOINT",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "opcode": "connect",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "MICROPHONE",
+          "type": "STRING",
+          "menu": "onOff"
+        }
+      ]
+    },
+    {
+      "opcode": "connectionState",
+      "blockType": "REPORTER",
+      "arguments": []
+    },
+    {
+      "opcode": "defineFunction",
+      "blockType": "HAT",
+      "arguments": [
+        {
+          "id": "DESCRIPTION",
+          "type": "STRING"
+        },
+        {
+          "id": "EXPORT",
+          "type": "STRING",
+          "menu": "exportModes"
+        },
+        {
+          "id": "NAME",
+          "type": "STRING"
+        },
+        {
+          "id": "SCHEMA",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "opcode": "disconnect",
+      "blockType": "COMMAND",
+      "arguments": []
+    },
+    {
+      "opcode": "functionArgument",
+      "blockType": "REPORTER",
+      "arguments": [
+        {
+          "id": "PATH",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "opcode": "functionArgumentsJson",
+      "blockType": "REPORTER",
+      "arguments": []
+    },
+    {
+      "opcode": "isConnected",
+      "blockType": "BOOLEAN",
+      "arguments": []
+    },
+    {
+      "opcode": "isRelayPaired",
+      "blockType": "BOOLEAN",
+      "arguments": []
+    },
+    {
+      "opcode": "lastError",
+      "blockType": "REPORTER",
+      "arguments": []
+    },
+    {
+      "opcode": "lastResponseText",
+      "blockType": "REPORTER",
+      "arguments": []
+    },
+    {
+      "opcode": "pairRelay",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "CODE",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "opcode": "returnValue",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "VALUE",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "opcode": "sendText",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "TEXT",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "opcode": "setInstructions",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "TEXT",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "opcode": "setOutputMode",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "MODE",
+          "type": "STRING",
+          "menu": "outputModes"
+        }
+      ]
+    },
+    {
+      "opcode": "setVoice",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "VOICE",
+          "type": "STRING",
+          "menu": "voices"
+        }
+      ]
+    },
+    {
+      "opcode": "whenResponseDone",
+      "blockType": "HAT",
+      "arguments": []
+    }
+  ],
+  "menus": [
+    {
+      "id": "exportModes",
+      "acceptReporters": false
+    },
+    {
+      "id": "onOff",
+      "acceptReporters": false
+    },
+    {
+      "id": "outputModes",
+      "acceptReporters": false
+    },
+    {
+      "id": "voices",
+      "acceptReporters": true
+    }
+  ]
+}

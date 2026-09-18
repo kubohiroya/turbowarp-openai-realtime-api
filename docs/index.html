@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TurboWarp OpenAI Realtime</title>
+  <style>
+    body { font: 16px/1.6 system-ui, sans-serif; max-width: 46rem; margin: 2rem auto; padding: 0 1rem; color: #1f2328; background: #fff; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    pre { background: #f6f8fa; padding: 1rem; overflow-x: auto; border-radius: 6px; }
+    @media (prefers-color-scheme: dark) { body { color: #e6edf3; background: #0d1117; } pre { background: #161b22; } a { color: #58a6ff; } }
+  </style>
+</head>
+<body>
+  <h1>TurboWarp OpenAI Realtime</h1>
+  <p>Talk with the OpenAI Realtime API by voice or text from TurboWarp, and let the model call functions written in blocks. The API key stays in a localhost relay.</p>
+
+  <h2>Before you start</h2>
+  <ol>
+    <li>Start <a href="https://github.com/kubohiroya/capability-proxy"><code>@kubohiroya/capability-proxy</code></a> on <code>127.0.0.1</code> with the <code>openai</code> provider configured. Note the eight-digit pairing code it prints.</li>
+    <li>Load <a href="https://github.com/kubohiroya/turbowarp-openai-realtime-api/blob/main/dist/turbowarp-openai-realtime-api.js"><code>turbowarp-openai-realtime-api.js</code></a> as a custom extension with <strong>Run without sandbox</strong> enabled.</li>
+  </ol>
+
+  <h2>First conversation</h2>
+  <pre>configure local relay [http://127.0.0.1:8787]
+pair local relay with one-time code [12345678]
+connect to Realtime with microphone [on]
+send text [Hello!]
+
+when assistant finishes responding
+say (last assistant response)</pre>
+
+  <h2>Functions as tools</h2>
+  <p>Write a <code>define function</code> script and choose <code>export as tool</code>. NAME, DESCRIPTION, and the JSON args schema must be typed directly into the hat. When the model calls the tool, read arguments with <code>function argument</code> and send the result with <code>return</code>.</p>
+  <pre>define function [get_score] description [Returns the player's score.] args schema [{"type":"object","properties":{}}] export as [tool]
+return (join [{"score":] (join (score) [}]))</pre>
+
+  <h2>Safety</h2>
+  <ul>
+    <li>The relay endpoint must be a loopback address. The relay token and ephemeral keys are kept in memory only.</li>
+    <li>The model chooses the arguments of exported functions. Treat them as untrusted input.</li>
+    <li>If something fails, check <code>last Realtime error</code>.</li>
+  </ul>
+
+  <p>Full block reference: <a href="https://github.com/kubohiroya/turbowarp-openai-realtime-api#block-reference">README</a>.</p>
+</body>
+</html>

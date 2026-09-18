@@ -1,0 +1,24 @@
+{
+  "id": "fixtureextension",
+  "definitions": {
+    "blocks": [
+      {
+        "opcode": "speak",
+        "blockType": "REPORTER",
+        "arguments": {
+          "VOICE": {"type": "STRING", "menu": "voices", "defaultValue": "alto"},
+          "MESSAGE": {"type": "STRING", "defaultValue": "hello"}
+        }
+      },
+      {
+        "opcode": "clear",
+        "blockType": "COMMAND",
+        "arguments": {}
+      }
+    ],
+    "menus": {
+      "voices": {"acceptReporters": true, "items": ["alto", "soprano"]},
+      "formats": {"items": ["plain"]}
+    }
+  }
+}

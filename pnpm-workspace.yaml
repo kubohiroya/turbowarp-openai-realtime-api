@@ -1,0 +1,4 @@
+allowBuilds:
+  esbuild: false
+minimumReleaseAgeExclude:
+  - '@kubohiroya/vite-plugin-turbowarp-extension@0.3.0'

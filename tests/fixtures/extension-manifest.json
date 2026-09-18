@@ -1,0 +1,36 @@
+{
+  "formatVersion": 1,
+  "id": "fixtureextension",
+  "blocks": [
+    {
+      "opcode": "clear",
+      "blockType": "COMMAND",
+      "arguments": []
+    },
+    {
+      "opcode": "speak",
+      "blockType": "REPORTER",
+      "arguments": [
+        {
+          "id": "MESSAGE",
+          "type": "STRING"
+        },
+        {
+          "id": "VOICE",
+          "type": "STRING",
+          "menu": "voices"
+        }
+      ]
+    }
+  ],
+  "menus": [
+    {
+      "id": "formats",
+      "acceptReporters": false
+    },
+    {
+      "id": "voices",
+      "acceptReporters": true
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "name": "@kubohiroya/turbowarp-openai-realtime-api",
+  "version": "0.1.0",
+  "description": "A TurboWarp extension for the OpenAI Realtime API, using a localhost relay for credentials.",
+  "author": "Hiroya Kubo <hiroya@cuc.ac.jp>",
+  "license": "MPL-2.0",
+  "homepage": "https://github.com/kubohiroya/turbowarp-openai-realtime-api#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kubohiroya/turbowarp-openai-realtime-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kubohiroya/turbowarp-openai-realtime-api/issues"
+  },
+  "keywords": [
+    "turbowarp",
+    "scratch",
+    "extension",
+    "openai",
+    "realtime",
+    "webrtc",
+    "voice",
+    "vite",
+    "typescript"
+  ],
+  "type": "module",
+  "files": [
+    "dist/",
+    "docs/",
+    "schemas/",
+    "src/",
+    "README.md",
+    "README.ja.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "packageManager": "pnpm@11.11.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "build": "vite build",
+    "lint": "eslint src tests scripts vite.config.ts eslint.config.ts",
+    "test": "vitest run",
+    "docs": "node scripts/generate-readme.ts",
+    "docs:check": "pnpm run docs && git diff --exit-code -- README.md",
+    "repo:check": "node scripts/check-repo.ts",
+    "pack:check": "npm pack --dry-run --ignore-scripts",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run docs:check && pnpm run check:dist && pnpm run repo:check && pnpm run pack:check",
+    "check:dist": "pnpm run build && node scripts/check-dist.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@kubohiroya/vite-plugin-turbowarp-extension": "0.3.0",
+    "@types/node": "^24.13.3",
+    "eslint": "^9.39.5",
+    "jiti": "^2.7.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.66.0",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
+  }
+}
