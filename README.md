@@ -139,6 +139,26 @@ Chooses spoken audio or text-only responses for the next connection.
 | Opcode | `setOutputMode` |
 | `MODE` | String, default: `audio`, choices: `audio`, `text` |
 
+### `set model to [MODEL]`
+
+Chooses the Realtime model for the next connection. The relay only accepts models its operator allows; empty uses the relay default.
+
+| Property | Value |
+|---|---|
+| Type | Command |
+| Opcode | `setModel` |
+| `MODEL` | String, default: `gpt-realtime-2.1-mini`, choices: `gpt-realtime-2.1-mini`, `gpt-realtime-2.1` |
+
+### `set session time limit to [SECONDS] seconds`
+
+Disconnects automatically after this many seconds from the next connection on. 0 disables the limit.
+
+| Property | Value |
+|---|---|
+| Type | Command |
+| Opcode | `setSessionTimeLimit` |
+| `SECONDS` | Number, default: `600` |
+
 ### `connect to Realtime with microphone [MICROPHONE]`
 
 Mints an ephemeral key through the relay and opens a WebRTC session. Exported functions become tools.
@@ -175,6 +195,33 @@ Reports disconnected, connecting, connected, or failed.
 |---|---|
 | Type | Reporter |
 | Opcode | `connectionState` |
+
+### `Realtime model`
+
+Reports the model the relay used for the current or last connection.
+
+| Property | Value |
+|---|---|
+| Type | Reporter |
+| Opcode | `currentModel` |
+
+### `session elapsed seconds`
+
+Reports seconds since the current session connected, or 0 when disconnected.
+
+| Property | Value |
+|---|---|
+| Type | Reporter |
+| Opcode | `sessionElapsed` |
+
+### `when session time limit is reached`
+
+Starts after the session time limit disconnects the session.
+
+| Property | Value |
+|---|---|
+| Type | Hat |
+| Opcode | `whenSessionTimeLimitReached` |
 
 ### `send text [TEXT]`
 
@@ -246,6 +293,25 @@ Inside a function, returns a value and ends the script. JSON text is returned as
 | Opcode | `returnValue` |
 | `VALUE` | String, default: `{"score":10}` |
 
+### `Realtime usage [FIELD]`
+
+Reports token usage totals since the last reset. costUSD is an estimate from published prices; the OpenAI dashboard is authoritative.
+
+| Property | Value |
+|---|---|
+| Type | Reporter |
+| Opcode | `usageValue` |
+| `FIELD` | String, default: `costUSD`, choices: `costUSD`, `responses`, `inputTokens`, `outputTokens`, `cachedInputTokens`, `textInputTokens`, `audioInputTokens`, `textOutputTokens`, `audioOutputTokens` |
+
+### `reset Realtime usage`
+
+Clears the usage totals.
+
+| Property | Value |
+|---|---|
+| Type | Command |
+| Opcode | `resetUsage` |
+
 ### `last Realtime error`
 
 Reports the most recent relay, connection, or API error, or an empty string.
@@ -272,6 +338,51 @@ Reports the most recent relay, connection, or API error, or an empty string.
 | The model calls a function that is not exported as a tool | The call is refused and the model receives an error. |
 | Project stop | Pending function calls fail; the Realtime session stays open until `disconnect`. |
 | Disconnect or connection loss | The microphone is released, audio stops, and pending function calls fail. |
+| `set model to` | The model is sent with the next connection. The relay accepts only models listed in its `allowedModels`; empty uses the relay default. `Realtime model` reports the model actually used. |
+| `set session time limit to` | From the next connection, the session disconnects after that many seconds and `when session time limit is reached` starts. 0 disables the limit. |
+| `Realtime usage [FIELD]` | Totals from every `response.done`, including function-call rounds, since the last reset. `costUSD` is an estimate from published prices (see `src/usage.ts`); the OpenAI dashboard is authoritative. |
+
+## Composition API
+
+Importing the Composition API does not register the standalone TurboWarp extension. A downstream
+extension such as a voice-chat extension owns its blocks and hats and forwards them here. Named
+functions come from [`@kubohiroya/turbowarp-named-functions`](https://github.com/kubohiroya/turbowarp-named-functions);
+pass a shared instance with `functions` when the downstream extension also uses it.
+
+```ts
+import {createRealtimeComposition} from '@kubohiroya/turbowarp-openai-realtime-api/composition';
+
+const realtime = createRealtimeComposition({
+  runtime: Scratch.vm.runtime,
+  functionHatOpcode: 'myextension_defineFunction'
+});
+
+realtime.subscribe((event) => {
+  if (event.type === 'response') console.log(event.text);
+  if (event.type === 'sessionTimeLimitReached') console.log('time for a break');
+});
+
+realtime.configureRelay('http://127.0.0.1:8787');
+await realtime.pairRelay('12345678');
+realtime.setModel('gpt-realtime-2.1-mini');
+realtime.setOutputMode('text');
+realtime.setSessionTimeLimit(600);
+await realtime.connect({microphone: false});
+realtime.sendText('Hello!');
+
+realtime.release();
+```
+
+| Member | Purpose |
+|---|---|
+| `configureRelay` / `pairRelay` / `isRelayPaired` | Pair with the localhost relay |
+| `setModel` / `setInstructions` / `setVoice` / `setOutputMode` / `setSessionTimeLimit` | Settings for the next connection |
+| `connect` / `disconnect` / `state` / `activeModel` / `sessionElapsedSeconds` | Session lifecycle |
+| `sendText` / `lastResponseText` | Text conversation |
+| `matchFunctionHat` / `functionArguments` / `returnFromFunction` / `functions` | Bridge to named functions exported as tools |
+| `usage` / `resetUsage` | Token usage and estimated cost |
+| `subscribe` | Events: `state`, `response`, `usage`, `error`, `sessionTimeLimitReached` |
+| `release` | Disconnect and detach listeners |
 
 ## Compatibility
 

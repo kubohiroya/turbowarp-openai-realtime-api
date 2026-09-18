@@ -14,6 +14,8 @@ export interface RealtimeSessionHooks {
   onResponseText: (text: string) => void;
   onError: (message: string) => void;
   onStateChange?: (state: ConnectionState) => void;
+  /** Receives `response.usage` from every `response.done`, including function-call rounds. */
+  onUsage?: (usage: unknown) => void;
 }
 
 /**
@@ -91,6 +93,10 @@ export class RealtimeSession {
       return;
     }
     if (event.type !== 'response.done') return;
+    const response = event.response;
+    if (typeof response === 'object' && response !== null && 'usage' in response) {
+      this.hooks.onUsage?.((response as {usage: unknown}).usage);
+    }
     const output = readResponseOutput(event);
     if (output.text.length > 0) this.hooks.onResponseText(output.text);
     if (output.calls.length === 0) return;

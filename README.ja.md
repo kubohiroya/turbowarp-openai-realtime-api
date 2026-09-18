@@ -125,6 +125,26 @@ localhostで動くcapability-proxy中継のループバックoriginを設定し�
 | Opcode | `setOutputMode` |
 | `MODE` | 文字列, 既定値: `audio`, 選択肢: `audio`, `text` |
 
+### `set model to [MODEL]`
+
+次の接続で使うRealtimeのモデルを選びます。中継の運用者が許可したモデルだけが使えます。空にすると中継の既定のモデルを使います。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `setModel` |
+| `MODEL` | 文字列, 既定値: `gpt-realtime-2.1-mini`, 選択肢: `gpt-realtime-2.1-mini`, `gpt-realtime-2.1` |
+
+### `set session time limit to [SECONDS] seconds`
+
+次の接続から、指定した秒数が経つと自動で切断します。0にすると制限しません。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `setSessionTimeLimit` |
+| `SECONDS` | 数値, 既定値: `600` |
+
 ### `connect to Realtime with microphone [MICROPHONE]`
 
 中継を通じて一時キーを発行し、WebRTCのセッションを開きます。ツールとして公開した関数はモデルから呼べるようになります。
@@ -161,6 +181,33 @@ disconnected、connecting、connected、failedのいずれかを返します。
 |---|---|
 | 種類 | 値ブロック |
 | Opcode | `connectionState` |
+
+### `Realtime model`
+
+現在または直前の接続で中継が使ったモデルを返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 値ブロック |
+| Opcode | `currentModel` |
+
+### `session elapsed seconds`
+
+現在のセッションが接続してからの秒数を返します。切断中は0を返します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 値ブロック |
+| Opcode | `sessionElapsed` |
+
+### `when session time limit is reached`
+
+セッションの時間上限によって切断されたときに起動します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | ハット |
+| Opcode | `whenSessionTimeLimitReached` |
 
 ### `send text [TEXT]`
 
@@ -232,6 +279,25 @@ disconnected、connecting、connected、failedのいずれかを返します。
 | Opcode | `returnValue` |
 | `VALUE` | 文字列, 既定値: `{"score":10}` |
 
+### `Realtime usage [FIELD]`
+
+最後にリセットしてからの使用量の合計を返します。costUSDは公開価格からの概算で、正確な請求額はOpenAIの管理画面で確認してください。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | 値ブロック |
+| Opcode | `usageValue` |
+| `FIELD` | 文字列, 既定値: `costUSD`, 選択肢: `costUSD`, `responses`, `inputTokens`, `outputTokens`, `cachedInputTokens`, `textInputTokens`, `audioInputTokens`, `textOutputTokens`, `audioOutputTokens` |
+
+### `reset Realtime usage`
+
+使用量の合計を0に戻します。
+
+| 項目 | 値 |
+|---|---|
+| 種類 | コマンド |
+| Opcode | `resetUsage` |
+
 ### `last Realtime error`
 
 直近の中継、接続、APIのエラーを返します。エラーがなければ空文字列を返します。
@@ -258,6 +324,13 @@ disconnected、connecting、connected、failedのいずれかを返します。
 | ツールとして公開していない関数をモデルが呼んだ | 呼び出しを拒否し、モデルにエラーを返す |
 | プロジェクトの停止 | 実行中・待機中の関数呼び出しは失敗する。Realtimeのセッションは`disconnect`まで維持する |
 | 切断、または接続が切れた | マイクを解放し、音声を止め、実行中の関数呼び出しは失敗する |
+| `set model to` | モデルは次の接続で送られる。中継は`allowedModels`に載っているモデルだけを受け付ける。空にすると中継の既定のモデルを使う。実際に使われたモデルは`Realtime model`でわかる |
+| `set session time limit to` | 次の接続から、指定した秒数が経つとセッションを切断し、`when session time limit is reached`を起動する。0にすると制限しない |
+| `Realtime usage [FIELD]` | 最後にリセットしてからのすべての`response.done`（関数呼び出しの往復も含む）の合計。`costUSD`は公開価格からの概算（`src/usage.ts`）で、正確な請求額はOpenAIの管理画面で確認する |
+
+## Composition API
+
+Composition APIをimportしても、単独のTurboWarp機能拡張は登録されません。音声会話の拡張などの下流の拡張が、自分のブロックとハットを持ち、処理をこのAPIに渡します。関数は[`@kubohiroya/turbowarp-named-functions`](https://github.com/kubohiroya/turbowarp-named-functions)を使います。下流の拡張も同じ関数を使う場合は、`functions`に共有のインスタンスを渡します。使い方は[英語版README](README.md#composition-api)を参照してください。
 
 ## 開発
 

@@ -11,7 +11,7 @@ beforeEach(() => {
   vi.stubGlobal('Scratch', {
     BlockType: {COMMAND: 'command', REPORTER: 'reporter', BOOLEAN: 'Boolean', HAT: 'hat'},
     ArgumentType: {STRING: 'string', NUMBER: 'number', BOOLEAN: 'Boolean'},
-    Cast: {toString: (value: unknown) => String(value)},
+    Cast: {toString: (value: unknown) => String(value), toNumber: (value: unknown) => Number(value)},
     translate: (message: string | {default: string}) => (typeof message === 'string' ? message : message.default)
   });
 });

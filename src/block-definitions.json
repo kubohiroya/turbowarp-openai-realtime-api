@@ -77,6 +77,33 @@
       }
     },
     {
+      "opcode": "setModel",
+      "blockType": "COMMAND",
+      "text": "set model to [MODEL]",
+      "description": "Chooses the Realtime model for the next connection. The relay only accepts models its operator allows; empty uses the relay default.",
+      "descriptionJa": "次の接続で使うRealtimeのモデルを選びます。中継の運用者が許可したモデルだけが使えます。空にすると中継の既定のモデルを使います。",
+      "arguments": {
+        "MODEL": {
+          "type": "STRING",
+          "menu": "models",
+          "defaultValue": "gpt-realtime-2.1-mini"
+        }
+      }
+    },
+    {
+      "opcode": "setSessionTimeLimit",
+      "blockType": "COMMAND",
+      "text": "set session time limit to [SECONDS] seconds",
+      "description": "Disconnects automatically after this many seconds from the next connection on. 0 disables the limit.",
+      "descriptionJa": "次の接続から、指定した秒数が経つと自動で切断します。0にすると制限しません。",
+      "arguments": {
+        "SECONDS": {
+          "type": "NUMBER",
+          "defaultValue": "600"
+        }
+      }
+    },
+    {
       "opcode": "connect",
       "blockType": "COMMAND",
       "text": "connect to Realtime with microphone [MICROPHONE]",
@@ -112,6 +139,30 @@
       "text": "Realtime connection state",
       "description": "Reports disconnected, connecting, connected, or failed.",
       "descriptionJa": "disconnected、connecting、connected、failedのいずれかを返します。",
+      "arguments": {}
+    },
+    {
+      "opcode": "currentModel",
+      "blockType": "REPORTER",
+      "text": "Realtime model",
+      "description": "Reports the model the relay used for the current or last connection.",
+      "descriptionJa": "現在または直前の接続で中継が使ったモデルを返します。",
+      "arguments": {}
+    },
+    {
+      "opcode": "sessionElapsed",
+      "blockType": "REPORTER",
+      "text": "session elapsed seconds",
+      "description": "Reports seconds since the current session connected, or 0 when disconnected.",
+      "descriptionJa": "現在のセッションが接続してからの秒数を返します。切断中は0を返します。",
+      "arguments": {}
+    },
+    {
+      "opcode": "whenSessionTimeLimitReached",
+      "blockType": "HAT",
+      "text": "when session time limit is reached",
+      "description": "Starts after the session time limit disconnects the session.",
+      "descriptionJa": "セッションの時間上限によって切断されたときに起動します。",
       "arguments": {}
     },
     {
@@ -204,6 +255,28 @@
       }
     },
     {
+      "opcode": "usageValue",
+      "blockType": "REPORTER",
+      "text": "Realtime usage [FIELD]",
+      "description": "Reports token usage totals since the last reset. costUSD is an estimate from published prices; the OpenAI dashboard is authoritative.",
+      "descriptionJa": "最後にリセットしてからの使用量の合計を返します。costUSDは公開価格からの概算で、正確な請求額はOpenAIの管理画面で確認してください。",
+      "arguments": {
+        "FIELD": {
+          "type": "STRING",
+          "menu": "usageFields",
+          "defaultValue": "costUSD"
+        }
+      }
+    },
+    {
+      "opcode": "resetUsage",
+      "blockType": "COMMAND",
+      "text": "reset Realtime usage",
+      "description": "Clears the usage totals.",
+      "descriptionJa": "使用量の合計を0に戻します。",
+      "arguments": {}
+    },
+    {
       "opcode": "lastError",
       "blockType": "REPORTER",
       "text": "last Realtime error",
@@ -247,6 +320,27 @@
       "items": [
         "tool",
         "none"
+      ]
+    },
+    "models": {
+      "acceptReporters": true,
+      "items": [
+        "gpt-realtime-2.1-mini",
+        "gpt-realtime-2.1"
+      ]
+    },
+    "usageFields": {
+      "acceptReporters": false,
+      "items": [
+        "costUSD",
+        "responses",
+        "inputTokens",
+        "outputTokens",
+        "cachedInputTokens",
+        "textInputTokens",
+        "audioInputTokens",
+        "textOutputTokens",
+        "audioOutputTokens"
       ]
     }
   }

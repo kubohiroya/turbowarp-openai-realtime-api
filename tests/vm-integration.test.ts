@@ -3,7 +3,8 @@
 //   SCRATCH_VM_PATH=/path/to/TurboWarp/scratch-vm pnpm test
 import {createRequire} from 'node:module';
 import {afterAll, beforeAll, describe, expect, it, vi} from 'vitest';
-import type {RuntimeLike} from '../src/runtime-types.js';
+import type {RuntimeLike} from '@kubohiroya/turbowarp-named-functions/composition';
+import type {RealtimeEvent, RealtimeTransport, TransportConnectOptions} from '../src/transport.js';
 
 const vmPath = process.env.SCRATCH_VM_PATH;
 const ID = 'kubohiroyaopenairealtime';
@@ -103,16 +104,71 @@ function buildProject() {
   };
 }
 
+class FakeTransport implements RealtimeTransport {
+  public readonly sent: RealtimeEvent[] = [];
+  public options: TransportConnectOptions | null = null;
+  public async connect(options: TransportConnectOptions): Promise<void> {
+    this.options = options;
+  }
+  public send(event: RealtimeEvent): void {
+    this.sent.push(event);
+  }
+  public close(): void {}
+}
+
+const NOW = Date.now();
+
+function relayFetch() {
+  return async (url: string): Promise<Response> => {
+    if (url.endsWith('/v1/pair')) {
+      return new Response(JSON.stringify({token: 'abcdefghijklmnopqrstuvwxyz012345', expiresAt: NOW + 3_600_000}));
+    }
+    return new Response(JSON.stringify({data: {value: 'ek_test', expiresAt: NOW + 3_600_000, model: 'gpt-realtime-2.1-mini'}}));
+  };
+}
+
 describe.skipIf(!vmPath)('define function on a real TurboWarp VM', () => {
   let vm: VirtualMachineLike;
-  let call: (name: string, args: unknown) => Promise<unknown>;
+  const transport = new FakeTransport();
+  let nextCall = 0;
   const marker = () => vm.runtime.getSpriteTargetByName('S').lookupVariableByNameAndType('marker', '').value;
+
+  /** Simulates the model calling tools, and resolves with the outputs sent back, in call order. */
+  async function callTools(calls: Array<[string, unknown]>): Promise<unknown[]> {
+    const before = transport.sent.length;
+    const ids = calls.map(() => `call_${nextCall++}`);
+    transport.options?.onEvent({
+      type: 'response.done',
+      response: {
+        output: calls.map(([name, args], index) => ({
+          type: 'function_call',
+          name,
+          call_id: ids[index],
+          arguments: JSON.stringify(args)
+        }))
+      }
+    });
+    for (let waited = 0; waited < 5000; waited += 10) {
+      if (transport.sent.slice(before).some((event) => event.type === 'response.create')) break;
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    const outputs = new Map(
+      transport.sent
+        .slice(before)
+        .filter((event) => event.type === 'conversation.item.create')
+        .map((event) => {
+          const item = event.item as {call_id: string; output: string};
+          return [item.call_id, JSON.parse(item.output) as unknown] as const;
+        })
+    );
+    return ids.map((id) => outputs.get(id));
+  }
 
   beforeAll(async () => {
     vi.stubGlobal('Scratch', {
       BlockType: {COMMAND: 'command', REPORTER: 'reporter', BOOLEAN: 'Boolean', HAT: 'hat'},
       ArgumentType: {STRING: 'string', NUMBER: 'number', BOOLEAN: 'Boolean'},
-      Cast: {toString: (value: unknown) => String(value)},
+      Cast: {toString: (value: unknown) => String(value), toNumber: (value: unknown) => Number(value)},
       translate: (message: string | {default: string}) => (typeof message === 'string' ? message : message.default)
     });
     const require = createRequire(import.meta.url);
@@ -120,14 +176,19 @@ describe.skipIf(!vmPath)('define function on a real TurboWarp VM', () => {
     const {OpenAIRealtimeExtension} = await import('../src/extension.js');
     vm = new VirtualMachine();
     vm.setCompilerOptions({enabled: true});
-    const extension = new OpenAIRealtimeExtension({runtime: vm.runtime});
+    const extension = new OpenAIRealtimeExtension({
+      runtime: vm.runtime,
+      fetch: relayFetch(),
+      createTransport: () => transport
+    });
     const serviceName = vm.extensionManager._registerInternalExtension(extension);
     vm.extensionManager._loadedExtensions.set(ID, serviceName);
     await vm.loadProject(buildProject());
     vm.setFramerate(250);
     vm.start();
-    call = (name, args) =>
-      (extension as unknown as {callExportedFunction(name: string, args: unknown): Promise<unknown>}).callExportedFunction(name, args);
+    await extension.pairRelay({CODE: '12345678'});
+    await extension.connect({MICROPHONE: 'off'});
+    expect(extension.lastError()).toBe('');
   });
 
   afterAll(() => {
@@ -136,27 +197,28 @@ describe.skipIf(!vmPath)('define function on a real TurboWarp VM', () => {
   });
 
   it('runs only the matching hat and returns its value', async () => {
-    await expect(call('greet', {player: {name: 'Ada'}})).resolves.toBe('hello Ada');
+    await expect(callTools([['greet', {player: {name: 'Ada'}}]])).resolves.toEqual(['hello Ada']);
   });
 
   it('stops the script at return', async () => {
-    await call('greet', {player: {name: 'Bo'}});
+    await callTools([['greet', {player: {name: 'Bo'}}]]);
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(marker()).not.toBe('after');
   });
 
-  it('resolves null when the script ends without return', async () => {
-    await expect(call('silent', {})).resolves.toBeNull();
+  it('returns null when the script ends without return', async () => {
+    await expect(callTools([['silent', {}]])).resolves.toEqual([null]);
     expect(marker()).toBe('silent');
   });
 
-  it('gives each invocation its own arguments, queued per name', async () => {
-    const results = await Promise.all([
-      call('echo', {n: 1}),
-      call('echo', {n: 2}),
-      call('greet', {player: {name: 'Cy'}}),
-      call('echo', {n: 3})
-    ]);
-    expect(results).toEqual([{n: 1}, {n: 2}, 'hello Cy', {n: 3}]);
+  it('answers several tool calls in one response, queued per name', async () => {
+    await expect(
+      callTools([
+        ['echo', {n: 1}],
+        ['echo', {n: 2}],
+        ['greet', {player: {name: 'Cy'}}],
+        ['echo', {n: 3}]
+      ])
+    ).resolves.toEqual([{n: 1}, {n: 2}, 'hello Cy', {n: 3}]);
   });
 });

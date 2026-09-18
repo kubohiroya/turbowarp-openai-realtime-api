@@ -29,6 +29,11 @@
       "arguments": []
     },
     {
+      "opcode": "currentModel",
+      "blockType": "REPORTER",
+      "arguments": []
+    },
+    {
       "opcode": "defineFunction",
       "blockType": "HAT",
       "arguments": [
@@ -102,6 +107,11 @@
       ]
     },
     {
+      "opcode": "resetUsage",
+      "blockType": "COMMAND",
+      "arguments": []
+    },
+    {
       "opcode": "returnValue",
       "blockType": "COMMAND",
       "arguments": [
@@ -122,12 +132,28 @@
       ]
     },
     {
+      "opcode": "sessionElapsed",
+      "blockType": "REPORTER",
+      "arguments": []
+    },
+    {
       "opcode": "setInstructions",
       "blockType": "COMMAND",
       "arguments": [
         {
           "id": "TEXT",
           "type": "STRING"
+        }
+      ]
+    },
+    {
+      "opcode": "setModel",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "MODEL",
+          "type": "STRING",
+          "menu": "models"
         }
       ]
     },
@@ -143,6 +169,16 @@
       ]
     },
     {
+      "opcode": "setSessionTimeLimit",
+      "blockType": "COMMAND",
+      "arguments": [
+        {
+          "id": "SECONDS",
+          "type": "NUMBER"
+        }
+      ]
+    },
+    {
       "opcode": "setVoice",
       "blockType": "COMMAND",
       "arguments": [
@@ -154,7 +190,23 @@
       ]
     },
     {
+      "opcode": "usageValue",
+      "blockType": "REPORTER",
+      "arguments": [
+        {
+          "id": "FIELD",
+          "type": "STRING",
+          "menu": "usageFields"
+        }
+      ]
+    },
+    {
       "opcode": "whenResponseDone",
+      "blockType": "HAT",
+      "arguments": []
+    },
+    {
+      "opcode": "whenSessionTimeLimitReached",
       "blockType": "HAT",
       "arguments": []
     }
@@ -165,11 +217,19 @@
       "acceptReporters": false
     },
     {
+      "id": "models",
+      "acceptReporters": true
+    },
+    {
       "id": "onOff",
       "acceptReporters": false
     },
     {
       "id": "outputModes",
+      "acceptReporters": false
+    },
+    {
+      "id": "usageFields",
       "acceptReporters": false
     },
     {

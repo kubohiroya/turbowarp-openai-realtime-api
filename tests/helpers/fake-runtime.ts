@@ -1,4 +1,7 @@
-import type {RuntimeLike, RuntimeTarget, RuntimeThread, SerializedBlock} from '../../src/runtime-types.js';
+import type {RuntimeLike, RuntimeThread} from '@kubohiroya/turbowarp-named-functions/composition';
+
+type RuntimeTarget = RuntimeLike['targets'][number];
+type SerializedBlock = RuntimeTarget['blocks']['_blocks'][string];
 
 /** Minimal stand-in for the TurboWarp runtime: records startHats calls and lets tests drive steps. */
 export class FakeRuntime implements RuntimeLike {

@@ -1,6 +1,6 @@
 import {extensionConfig} from './config.js';
 import {OpenAIRealtimeExtension} from './extension.js';
-import type {RuntimeLike} from './runtime-types.js';
+import type {RuntimeLike} from '@kubohiroya/turbowarp-named-functions/composition';
 
 if (extensionConfig.unsandboxed && !Scratch.extensions.unsandboxed) {
   throw new Error(`${extensionConfig.name} must run unsandboxed.`);

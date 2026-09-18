@@ -88,6 +88,29 @@
   			} }
   		},
   		{
+  			"opcode": "setModel",
+  			"blockType": "COMMAND",
+  			"text": "set model to [MODEL]",
+  			"description": "Chooses the Realtime model for the next connection. The relay only accepts models its operator allows; empty uses the relay default.",
+  			"descriptionJa": "次の接続で使うRealtimeのモデルを選びます。中継の運用者が許可したモデルだけが使えます。空にすると中継の既定のモデルを使います。",
+  			"arguments": { "MODEL": {
+  				"type": "STRING",
+  				"menu": "models",
+  				"defaultValue": "gpt-realtime-2.1-mini"
+  			} }
+  		},
+  		{
+  			"opcode": "setSessionTimeLimit",
+  			"blockType": "COMMAND",
+  			"text": "set session time limit to [SECONDS] seconds",
+  			"description": "Disconnects automatically after this many seconds from the next connection on. 0 disables the limit.",
+  			"descriptionJa": "次の接続から、指定した秒数が経つと自動で切断します。0にすると制限しません。",
+  			"arguments": { "SECONDS": {
+  				"type": "NUMBER",
+  				"defaultValue": "600"
+  			} }
+  		},
+  		{
   			"opcode": "connect",
   			"blockType": "COMMAND",
   			"text": "connect to Realtime with microphone [MICROPHONE]",
@@ -121,6 +144,30 @@
   			"text": "Realtime connection state",
   			"description": "Reports disconnected, connecting, connected, or failed.",
   			"descriptionJa": "disconnected、connecting、connected、failedのいずれかを返します。",
+  			"arguments": {}
+  		},
+  		{
+  			"opcode": "currentModel",
+  			"blockType": "REPORTER",
+  			"text": "Realtime model",
+  			"description": "Reports the model the relay used for the current or last connection.",
+  			"descriptionJa": "現在または直前の接続で中継が使ったモデルを返します。",
+  			"arguments": {}
+  		},
+  		{
+  			"opcode": "sessionElapsed",
+  			"blockType": "REPORTER",
+  			"text": "session elapsed seconds",
+  			"description": "Reports seconds since the current session connected, or 0 when disconnected.",
+  			"descriptionJa": "現在のセッションが接続してからの秒数を返します。切断中は0を返します。",
+  			"arguments": {}
+  		},
+  		{
+  			"opcode": "whenSessionTimeLimitReached",
+  			"blockType": "HAT",
+  			"text": "when session time limit is reached",
+  			"description": "Starts after the session time limit disconnects the session.",
+  			"descriptionJa": "セッションの時間上限によって切断されたときに起動します。",
   			"arguments": {}
   		},
   		{
@@ -207,6 +254,26 @@
   			} }
   		},
   		{
+  			"opcode": "usageValue",
+  			"blockType": "REPORTER",
+  			"text": "Realtime usage [FIELD]",
+  			"description": "Reports token usage totals since the last reset. costUSD is an estimate from published prices; the OpenAI dashboard is authoritative.",
+  			"descriptionJa": "最後にリセットしてからの使用量の合計を返します。costUSDは公開価格からの概算で、正確な請求額はOpenAIの管理画面で確認してください。",
+  			"arguments": { "FIELD": {
+  				"type": "STRING",
+  				"menu": "usageFields",
+  				"defaultValue": "costUSD"
+  			} }
+  		},
+  		{
+  			"opcode": "resetUsage",
+  			"blockType": "COMMAND",
+  			"text": "reset Realtime usage",
+  			"description": "Clears the usage totals.",
+  			"descriptionJa": "使用量の合計を0に戻します。",
+  			"arguments": {}
+  		},
+  		{
   			"opcode": "lastError",
   			"blockType": "REPORTER",
   			"text": "last Realtime error",
@@ -242,9 +309,29 @@
   		"exportModes": {
   			"acceptReporters": false,
   			"items": ["tool", "none"]
+  		},
+  		"models": {
+  			"acceptReporters": true,
+  			"items": ["gpt-realtime-2.1-mini", "gpt-realtime-2.1"]
+  		},
+  		"usageFields": {
+  			"acceptReporters": false,
+  			"items": [
+  				"costUSD",
+  				"responses",
+  				"inputTokens",
+  				"outputTokens",
+  				"cachedInputTokens",
+  				"textInputTokens",
+  				"audioInputTokens",
+  				"textOutputTokens",
+  				"audioOutputTokens"
+  			]
   		}
   	}
   };
+  //#endregion
+  //#region node_modules/.pnpm/@kubohiroya+turbowarp-named-functions@0.1.0/node_modules/@kubohiroya/turbowarp-named-functions/dist/composition.js
   var FunctionDispatcher = class {
   	constructor(runtime, options) {
   		this.runtime = runtime;
@@ -254,18 +341,27 @@
   		this.byThread = /* @__PURE__ */ new Map();
   		this.starting = null;
   		this.step = 0;
+  		this.onAfterExecute = () => this.afterStep();
+  		this.onStopAll = () => this.cancelAll("The project was stopped.");
   		this.timeoutMs = options.timeoutMs ?? 3e4;
   		this.setTimer = options.setTimer ?? ((callback, ms) => setTimeout(callback, ms));
   		this.clearTimer = options.clearTimer ?? ((handle) => clearTimeout(handle));
-  		runtime.on("AFTER_EXECUTE", () => this.afterStep());
-  		runtime.on("PROJECT_STOP_ALL", () => this.cancelAll("The project was stopped."));
+  		runtime.on("AFTER_EXECUTE", this.onAfterExecute);
+  		runtime.on("PROJECT_STOP_ALL", this.onStopAll);
   	}
-  	invoke(name, args) {
+  	/**
+  	* Starts a named function. `caller` is the thread of the block making the call, if any; it is used
+  	* to detect reentrant calls.
+  	*/
+  	invoke(name, args, caller) {
   		if (!this.options.knownNames().has(name)) return Promise.reject(/* @__PURE__ */ new Error(`Unknown function: ${name}`));
+  		const parentChain = caller ? this.byThread.get(caller)?.chain ?? [] : [];
+  		if (parentChain.includes(name)) return Promise.reject(/* @__PURE__ */ new Error(`Reentrant call: ${[...parentChain, name].join(" -> ")}. Use a custom block for recursion.`));
   		return new Promise((resolve, reject) => {
   			const invocation = {
   				name,
   				args,
+  				chain: [...parentChain, name],
   				resolve,
   				reject,
   				thread: null,
@@ -303,6 +399,11 @@
   	}
   	get pendingCount() {
   		return this.queue.length + this.running.size;
+  	}
+  	release() {
+  		this.cancelAll("Named functions were released.");
+  		this.runtime.off?.("AFTER_EXECUTE", this.onAfterExecute);
+  		this.runtime.off?.("PROJECT_STOP_ALL", this.onStopAll);
   	}
   	pump() {
   		if (this.starting) return;
@@ -346,14 +447,14 @@
   	}
   	return current;
   }
-  /** Converts a Scratch value for display in a reporter: objects become JSON text. */
+  /** Converts a value for a Scratch reporter: objects and arrays become JSON text. */
   function toScratchValue(value) {
   	if (value === void 0 || value === null) return "";
   	if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return value;
   	return JSON.stringify(value);
   }
-  /** `return [VALUE]`: JSON text is returned as JSON, anything else as a string. */
-  function parseReturnValue(text) {
+  /** Parses block text: JSON text becomes JSON, anything else stays a string. */
+  function parseJsonOrText(text) {
   	const trimmed = text.trim();
   	if (trimmed.length === 0) return "";
   	try {
@@ -362,8 +463,6 @@
   		return text;
   	}
   }
-  //#endregion
-  //#region src/function-registry.ts
   var FUNCTION_NAME_PATTERN = /^[A-Za-z0-9_-]{1,64}$/u;
   var MAX_DESCRIPTION_LENGTH = 1024;
   /**
@@ -445,6 +544,184 @@
   	if (schema.type !== "object") throw new Error("args schema must have \"type\": \"object\"");
   	return schema;
   }
+  /**
+  * A small JSON Schema validator for function arguments. It interprets the schema at run time and
+  * never generates code, so it also works where `eval` is unavailable (for example Cloudflare Workers).
+  *
+  * Supported keywords: type, properties, required, additionalProperties (boolean), items, enum,
+  * const, minimum, maximum, minLength, maxLength, minItems, maxItems. Other keywords, such as
+  * description and title, are ignored.
+  */
+  function validateAgainstSchema(value, schema, path = "$") {
+  	const rule = asRecord$2(schema);
+  	if (!rule) return [];
+  	const errors = [];
+  	if (rule.type !== void 0) {
+  		const types = Array.isArray(rule.type) ? rule.type : [rule.type];
+  		if (!types.some((type) => matchesType(value, type))) return [`${path} must be ${types.join(" or ")}`];
+  	}
+  	if (Array.isArray(rule.enum) && !rule.enum.some((candidate) => deepEqual(candidate, value))) errors.push(`${path} must be one of ${rule.enum.map((item) => JSON.stringify(item)).join(", ")}`);
+  	if ("const" in rule && !deepEqual(rule.const, value)) errors.push(`${path} must be ${JSON.stringify(rule.const)}`);
+  	if (typeof value === "number") {
+  		if (typeof rule.minimum === "number" && value < rule.minimum) errors.push(`${path} must be >= ${rule.minimum}`);
+  		if (typeof rule.maximum === "number" && value > rule.maximum) errors.push(`${path} must be <= ${rule.maximum}`);
+  	}
+  	if (typeof value === "string") {
+  		const length = [...value].length;
+  		if (typeof rule.minLength === "number" && length < rule.minLength) errors.push(`${path} must have at least ${rule.minLength} characters`);
+  		if (typeof rule.maxLength === "number" && length > rule.maxLength) errors.push(`${path} must have at most ${rule.maxLength} characters`);
+  	}
+  	if (Array.isArray(value)) {
+  		if (typeof rule.minItems === "number" && value.length < rule.minItems) errors.push(`${path} must have at least ${rule.minItems} items`);
+  		if (typeof rule.maxItems === "number" && value.length > rule.maxItems) errors.push(`${path} must have at most ${rule.maxItems} items`);
+  		if (rule.items !== void 0) value.forEach((item, index) => errors.push(...validateAgainstSchema(item, rule.items, `${path}[${index}]`)));
+  	}
+  	const object = asRecord$2(value);
+  	if (object) {
+  		const properties = asRecord$2(rule.properties) ?? {};
+  		if (Array.isArray(rule.required)) {
+  			for (const name of rule.required) if (typeof name === "string" && !(name in object)) errors.push(`${path}.${name} is required`);
+  		}
+  		for (const [name, child] of Object.entries(object)) if (name in properties) errors.push(...validateAgainstSchema(child, properties[name], `${path}.${name}`));
+  		else if (rule.additionalProperties === false) errors.push(`${path}.${name} is not allowed`);
+  	}
+  	return errors;
+  }
+  function matchesType(value, type) {
+  	switch (type) {
+  		case "object": return asRecord$2(value) !== null;
+  		case "array": return Array.isArray(value);
+  		case "string": return typeof value === "string";
+  		case "number": return typeof value === "number" && Number.isFinite(value);
+  		case "integer": return typeof value === "number" && Number.isInteger(value);
+  		case "boolean": return typeof value === "boolean";
+  		case "null": return value === null;
+  		default: return false;
+  	}
+  }
+  function deepEqual(left, right) {
+  	return JSON.stringify(left) === JSON.stringify(right);
+  }
+  function asRecord$2(value) {
+  	return typeof value === "object" && value !== null && !Array.isArray(value) ? value : null;
+  }
+  /**
+  * Composition API: named functions without TurboWarp block definitions.
+  *
+  * A consumer extension owns its `define function` hat (and its opcode) and forwards the hat
+  * predicate and the argument/return blocks here. Importing this module does not register a
+  * TurboWarp extension and does not touch the `Scratch` global.
+  */
+  function createNamedFunctions(options) {
+  	return new NamedFunctionsImpl(options);
+  }
+  var NamedFunctionsImpl = class {
+  	constructor(options) {
+  		this.options = options;
+  		this.promises = /* @__PURE__ */ new Map();
+  		this.waiting = [];
+  		this.inFlight = 0;
+  		this.nextPromiseId = 1;
+  		this.maxInFlight = Math.max(1, options.maxInFlight ?? 8);
+  		this.maxRetained = Math.max(1, options.maxRetainedPromises ?? 256);
+  		const dispatcherOptions = {
+  			hatOpcode: options.functionHatOpcode,
+  			knownNames: () => new Set(this.scan().functions.map((definition) => definition.name)),
+  			...options.timeoutMs === void 0 ? {} : { timeoutMs: options.timeoutMs },
+  			...options.setTimer ? { setTimer: options.setTimer } : {},
+  			...options.clearTimer ? { clearTimer: options.clearTimer } : {}
+  		};
+  		this.dispatcher = new FunctionDispatcher(options.runtime, dispatcherOptions);
+  		options.runtime.on("PROJECT_STOP_ALL", () => this.promises.clear());
+  	}
+  	scan() {
+  		return scanFunctionDefinitions(this.options.runtime.targets, this.options.functionHatOpcode);
+  	}
+  	tools() {
+  		const scan = this.scan();
+  		if (scan.errors.length > 0) throw new Error(`Invalid function definitions: ${scan.errors.join("; ")}`);
+  		return toFunctionTools(scan.functions);
+  	}
+  	isDefined(name) {
+  		return this.scan().functions.some((definition) => definition.name === name.trim());
+  	}
+  	call(name, args, options = {}) {
+  		const trimmed = name.trim();
+  		const definition = this.scan().functions.find((candidate) => candidate.name === trimmed);
+  		if (!definition) return Promise.reject(/* @__PURE__ */ new Error(`Unknown function: ${trimmed}`));
+  		if (options.exportedOnly && definition.exportAs !== "tool") return Promise.reject(/* @__PURE__ */ new Error(`Function ${trimmed} is not exported as a tool.`));
+  		const errors = validateAgainstSchema(args, definition.parameters);
+  		if (errors.length > 0) return Promise.reject(/* @__PURE__ */ new Error(`Invalid arguments for ${trimmed}: ${errors.join("; ")}`));
+  		return this.dispatcher.invoke(trimmed, args, options.caller);
+  	}
+  	start(name, args, options = {}) {
+  		const id = `p_${this.nextPromiseId++}`;
+  		const promise = this.acquireSlot().then(() => this.call(name, args, options).finally(() => this.releaseSlot()));
+  		const entry = {
+  			promise,
+  			settled: false
+  		};
+  		promise.then(() => entry.settled = true, () => entry.settled = true);
+  		this.promises.set(id, entry);
+  		this.evictSettled();
+  		return { $promise: id };
+  	}
+  	await(ref) {
+  		const entry = this.lookup(ref);
+  		return entry ? entry.promise : Promise.reject(/* @__PURE__ */ new Error("Unknown or expired promise reference."));
+  	}
+  	async awaitAll(refs) {
+  		if (!Array.isArray(refs)) throw new Error("await all needs a JSON array of promise references.");
+  		return (await Promise.allSettled(refs.map((ref) => this.await(ref)))).map((result) => result.status === "fulfilled" ? result.value : { $error: messageOf$1(result.reason) });
+  	}
+  	isSettled(ref) {
+  		return this.lookup(ref)?.settled ?? false;
+  	}
+  	matchHat(name, thread) {
+  		return this.dispatcher.matchHat(name, thread);
+  	}
+  	argumentsFor(thread) {
+  		return this.dispatcher.argumentsFor(thread);
+  	}
+  	returnFrom(thread, value) {
+  		this.dispatcher.returnFrom(thread, value);
+  	}
+  	cancelAll(reason) {
+  		this.dispatcher.cancelAll(reason);
+  	}
+  	release() {
+  		this.dispatcher.release();
+  		this.promises.clear();
+  	}
+  	lookup(ref) {
+  		const id = typeof ref === "object" && ref !== null && typeof ref.$promise === "string" ? ref.$promise : void 0;
+  		return id ? this.promises.get(id) : void 0;
+  	}
+  	acquireSlot() {
+  		if (this.inFlight < this.maxInFlight) {
+  			this.inFlight += 1;
+  			return Promise.resolve();
+  		}
+  		return new Promise((resolve) => this.waiting.push(() => {
+  			this.inFlight += 1;
+  			resolve();
+  		}));
+  	}
+  	releaseSlot() {
+  		this.inFlight -= 1;
+  		this.waiting.shift()?.();
+  	}
+  	evictSettled() {
+  		if (this.promises.size <= this.maxRetained) return;
+  		for (const [id, entry] of this.promises) {
+  			if (this.promises.size <= this.maxRetained) break;
+  			if (entry.settled) this.promises.delete(id);
+  		}
+  	}
+  };
+  function messageOf$1(error) {
+  	return error instanceof Error ? error.message : String(error);
+  }
   //#endregion
   //#region src/realtime-session.ts
   /**
@@ -520,6 +797,8 @@
   			return;
   		}
   		if (event.type !== "response.done") return;
+  		const response = event.response;
+  		if (typeof response === "object" && response !== null && "usage" in response) this.hooks.onUsage?.(response.usage);
   		const output = readResponseOutput(event);
   		if (output.text.length > 0) this.hooks.onResponseText(output.text);
   		if (output.calls.length === 0) return;
@@ -567,12 +846,12 @@
   	}
   };
   function readResponseOutput(event) {
-  	const response = asRecord(event.response);
+  	const response = asRecord$1(event.response);
   	const items = Array.isArray(response?.output) ? response.output : [];
   	const texts = [];
   	const calls = [];
   	for (const rawItem of items) {
-  		const item = asRecord(rawItem);
+  		const item = asRecord$1(rawItem);
   		if (!item) continue;
   		if (item.type === "function_call" && typeof item.name === "string" && typeof item.call_id === "string") calls.push({
   			callId: item.call_id,
@@ -580,7 +859,7 @@
   			argumentsJson: typeof item.arguments === "string" ? item.arguments : ""
   		});
   		else if (item.type === "message" && Array.isArray(item.content)) for (const rawPart of item.content) {
-  			const part = asRecord(rawPart);
+  			const part = asRecord$1(rawPart);
   			if (typeof part?.text === "string") texts.push(part.text);
   			else if (typeof part?.transcript === "string") texts.push(part.transcript);
   		}
@@ -591,10 +870,10 @@
   	};
   }
   function describeApiError(event) {
-  	const error = asRecord(event.error);
+  	const error = asRecord$1(event.error);
   	return `${typeof error?.message === "string" ? error.message : "Unknown Realtime API error."}${typeof error?.code === "string" ? ` (${error.code})` : ""}`;
   }
-  function asRecord(value) {
+  function asRecord$1(value) {
   	return typeof value === "object" && value !== null && !Array.isArray(value) ? value : null;
   }
   //#endregion
@@ -687,12 +966,20 @@
   //#region src/session-config.ts
   var MAX_INSTRUCTIONS_LENGTH = 16384;
   var VOICE_PATTERN = /^[a-z0-9_-]{1,32}$/u;
+  var MODEL_PATTERN = /^[A-Za-z0-9._:-]{1,128}$/u;
   function defaultSessionSettings() {
   	return {
+  		model: "",
   		instructions: "",
   		voice: "marin",
   		outputMode: "audio"
   	};
+  }
+  /** Accepts an empty string (relay default) or a model identifier; the relay decides what is allowed. */
+  function normalizeModel(value) {
+  	const model = value.trim();
+  	if (model.length > 0 && !MODEL_PATTERN.test(model)) throw new TypeError("Model must be a model identifier.");
+  	return model;
   }
   function normalizeVoice(value) {
   	const voice = value.trim().toLowerCase();
@@ -713,9 +1000,88 @@
   		voice: settings.voice,
   		outputModalities: [settings.outputMode]
   	};
+  	if (settings.model.length > 0) request.model = settings.model;
   	if (settings.instructions.length > 0) request.instructions = settings.instructions;
   	if (tools.length > 0) request.tools = tools.map((tool) => ({ ...tool }));
   	return request;
+  }
+  //#endregion
+  //#region src/usage.ts
+  var MODEL_PRICES = {
+  	"gpt-realtime-2.1": {
+  		textInput: 4,
+  		cachedTextInput: .4,
+  		textOutput: 24,
+  		audioInput: 32,
+  		cachedAudioInput: .4,
+  		audioOutput: 64
+  	},
+  	"gpt-realtime-2.1-mini": {
+  		textInput: .6,
+  		cachedTextInput: .06,
+  		textOutput: 2.4,
+  		audioInput: 10,
+  		cachedAudioInput: .3,
+  		audioOutput: 20
+  	}
+  };
+  function emptyUsage() {
+  	return {
+  		responses: 0,
+  		inputTokens: 0,
+  		outputTokens: 0,
+  		cachedInputTokens: 0,
+  		textInputTokens: 0,
+  		audioInputTokens: 0,
+  		cachedTextInputTokens: 0,
+  		cachedAudioInputTokens: 0,
+  		textOutputTokens: 0,
+  		audioOutputTokens: 0,
+  		estimatedCostUsd: 0,
+  		unpricedResponses: 0
+  	};
+  }
+  /** Adds one `response.usage` object to the totals. Unknown or malformed usage counts as zero tokens. */
+  function addUsage(totals, usage, model) {
+  	const root = asRecord(usage);
+  	if (!root) return totals;
+  	const input = asRecord(root.input_token_details);
+  	const output = asRecord(root.output_token_details);
+  	const cachedDetails = asRecord(input?.cached_tokens_details);
+  	const textInput = count(input?.text_tokens);
+  	const audioInput = count(input?.audio_tokens);
+  	const cached = count(input?.cached_tokens);
+  	const cachedText = cachedDetails ? count(cachedDetails.text_tokens) : Math.min(cached, textInput);
+  	const cachedAudio = cachedDetails ? count(cachedDetails.audio_tokens) : Math.max(0, cached - cachedText);
+  	const textOutput = count(output?.text_tokens);
+  	const audioOutput = count(output?.audio_tokens);
+  	const next = {
+  		responses: totals.responses + 1,
+  		inputTokens: totals.inputTokens + count(root.input_tokens),
+  		outputTokens: totals.outputTokens + count(root.output_tokens),
+  		cachedInputTokens: totals.cachedInputTokens + cached,
+  		textInputTokens: totals.textInputTokens + textInput,
+  		audioInputTokens: totals.audioInputTokens + audioInput,
+  		cachedTextInputTokens: totals.cachedTextInputTokens + cachedText,
+  		cachedAudioInputTokens: totals.cachedAudioInputTokens + cachedAudio,
+  		textOutputTokens: totals.textOutputTokens + textOutput,
+  		audioOutputTokens: totals.audioOutputTokens + audioOutput,
+  		estimatedCostUsd: totals.estimatedCostUsd,
+  		unpricedResponses: totals.unpricedResponses
+  	};
+  	const price = MODEL_PRICES[model];
+  	if (!price) {
+  		next.unpricedResponses += 1;
+  		return next;
+  	}
+  	next.estimatedCostUsd += (Math.max(0, textInput - cachedText) * price.textInput + cachedText * price.cachedTextInput + Math.max(0, audioInput - cachedAudio) * price.audioInput + cachedAudio * price.cachedAudioInput + textOutput * price.textOutput + audioOutput * price.audioOutput) / 1e6;
+  	return next;
+  }
+  function count(value) {
+  	return typeof value === "number" && Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+  }
+  function asRecord(value) {
+  	return typeof value === "object" && value !== null && !Array.isArray(value) ? value : null;
   }
   //#endregion
   //#region src/webrtc-transport.ts
@@ -845,39 +1211,225 @@
   	});
   }
   //#endregion
+  //#region src/composition.ts
+  /**
+  * Composition API: the OpenAI Realtime capability without TurboWarp block definitions.
+  *
+  * A downstream extension (for example `@kubohiroya/turbowarp-voice-chat`) owns its own blocks and
+  * hats, and passes its own `define function` hat opcode. Importing this module does not register
+  * any TurboWarp extension and does not touch the `Scratch` global.
+  */
+  var DEFAULT_RELAY_ENDPOINT = "http://127.0.0.1:8787";
+  function createRealtimeComposition(options) {
+  	return new Composition(options);
+  }
+  var Composition = class {
+  	constructor(options) {
+  		this.options = options;
+  		this.relayEndpoint = DEFAULT_RELAY_ENDPOINT;
+  		this.relaySession = null;
+  		this.settingsValue = defaultSessionSettings();
+  		this.timeLimitSeconds = 0;
+  		this.connectedAt = null;
+  		this.timeLimitTimer = null;
+  		this.activeModelValue = "";
+  		this.lastResponse = "";
+  		this.usageTotals = emptyUsage();
+  		this.listeners = /* @__PURE__ */ new Set();
+  		this.fetcher = options.fetch ?? ((input, init) => fetch(input, init));
+  		this.createTransport = options.createTransport ?? (() => new WebRtcTransport());
+  		this.now = options.now ?? Date.now;
+  		this.setTimer = options.setTimer ?? ((callback, ms) => setTimeout(callback, ms));
+  		this.clearTimer = options.clearTimer ?? ((handle) => clearTimeout(handle));
+  		this.ownsFunctions = options.functions === void 0;
+  		this.namedFunctions = options.functions ?? createNamedFunctions({
+  			runtime: options.runtime,
+  			functionHatOpcode: options.functionHatOpcode
+  		});
+  		this.session = new RealtimeSession({
+  			callFunction: (name, args) => this.namedFunctions.call(name, args, { exportedOnly: true }),
+  			onResponseText: (text) => {
+  				this.lastResponse = text;
+  				this.emit({
+  					type: "response",
+  					text
+  				});
+  			},
+  			onError: (message) => this.emit({
+  				type: "error",
+  				message
+  			}),
+  			onStateChange: (state) => this.handleState(state),
+  			onUsage: (usage) => {
+  				this.usageTotals = addUsage(this.usageTotals, usage, this.activeModelValue);
+  				this.emit({
+  					type: "usage",
+  					usage: this.usage()
+  				});
+  			}
+  		});
+  	}
+  	configureRelay(endpoint) {
+  		this.relayEndpoint = normalizeRelayEndpoint(endpoint);
+  		this.relaySession = null;
+  	}
+  	async pairRelay(code) {
+  		this.relaySession = await pairWithRelay(this.relayEndpoint, code, this.fetcher, this.now);
+  	}
+  	isRelayPaired() {
+  		return this.relaySession !== null && this.relaySession.expiresAt > this.now();
+  	}
+  	setModel(model) {
+  		this.settingsValue = {
+  			...this.settingsValue,
+  			model: normalizeModel(model)
+  		};
+  	}
+  	setInstructions(text) {
+  		this.settingsValue = {
+  			...this.settingsValue,
+  			instructions: normalizeInstructions(text)
+  		};
+  	}
+  	setVoice(voice) {
+  		this.settingsValue = {
+  			...this.settingsValue,
+  			voice: normalizeVoice(voice)
+  		};
+  	}
+  	setOutputMode(mode) {
+  		this.settingsValue = {
+  			...this.settingsValue,
+  			outputMode: normalizeOutputMode(mode)
+  		};
+  	}
+  	setSessionTimeLimit(seconds) {
+  		if (!Number.isFinite(seconds) || seconds < 0) throw new TypeError("Session time limit must be zero or a positive number of seconds.");
+  		this.timeLimitSeconds = seconds;
+  	}
+  	get settings() {
+  		return { ...this.settingsValue };
+  	}
+  	get sessionTimeLimitSeconds() {
+  		return this.timeLimitSeconds;
+  	}
+  	scanFunctions() {
+  		return this.namedFunctions.scan();
+  	}
+  	get functions() {
+  		return this.namedFunctions;
+  	}
+  	async connect(options) {
+  		if (!this.relaySession || !this.isRelayPaired()) throw new Error("Pair with the local relay first.");
+  		const request = buildSessionRequest(this.settingsValue, this.namedFunctions.tools());
+  		const secret = await requestClientSecret(this.relaySession, request, this.fetcher, this.now);
+  		this.activeModelValue = secret.model || this.settingsValue.model;
+  		await this.session.open(this.createTransport(), secret.value, options.microphone);
+  	}
+  	disconnect() {
+  		this.session.close();
+  	}
+  	get state() {
+  		return this.session.state;
+  	}
+  	get activeModel() {
+  		return this.activeModelValue;
+  	}
+  	sessionElapsedSeconds() {
+  		return this.connectedAt === null ? 0 : Math.max(0, (this.now() - this.connectedAt) / 1e3);
+  	}
+  	sendText(text) {
+  		this.session.sendText(text);
+  	}
+  	get lastResponseText() {
+  		return this.lastResponse;
+  	}
+  	matchFunctionHat(name, thread) {
+  		return this.namedFunctions.matchHat(name, thread);
+  	}
+  	functionArguments(thread) {
+  		return this.namedFunctions.argumentsFor(thread);
+  	}
+  	returnFromFunction(thread, value) {
+  		this.namedFunctions.returnFrom(thread, value);
+  	}
+  	usage() {
+  		return { ...this.usageTotals };
+  	}
+  	resetUsage() {
+  		this.usageTotals = emptyUsage();
+  		this.emit({
+  			type: "usage",
+  			usage: this.usage()
+  		});
+  	}
+  	subscribe(listener) {
+  		this.listeners.add(listener);
+  		return () => this.listeners.delete(listener);
+  	}
+  	release() {
+  		this.disconnect();
+  		this.listeners.clear();
+  		if (this.ownsFunctions) this.namedFunctions.release();
+  	}
+  	handleState(state) {
+  		if (state === "connected") {
+  			this.connectedAt = this.now();
+  			if (this.timeLimitSeconds > 0) this.timeLimitTimer = this.setTimer(() => this.reachTimeLimit(), this.timeLimitSeconds * 1e3);
+  		} else if (state !== "connecting") {
+  			this.connectedAt = null;
+  			this.cancelTimeLimit();
+  			this.namedFunctions.cancelAll("The Realtime session ended.");
+  		}
+  		this.emit({
+  			type: "state",
+  			state
+  		});
+  	}
+  	reachTimeLimit() {
+  		this.timeLimitTimer = null;
+  		if (this.session.state !== "connected") return;
+  		this.session.close();
+  		this.emit({ type: "sessionTimeLimitReached" });
+  	}
+  	cancelTimeLimit() {
+  		if (this.timeLimitTimer !== null) this.clearTimer(this.timeLimitTimer);
+  		this.timeLimitTimer = null;
+  	}
+  	emit(event) {
+  		for (const listener of [...this.listeners]) listener(event);
+  	}
+  };
+  //#endregion
   //#region src/extension.ts
   var blockDefinitions = block_definitions_default.blocks;
   var menuDefinitions = block_definitions_default.menus;
   var DEFINE_FUNCTION_OPCODE = `${extensionConfig.id}_defineFunction`;
   var RESPONSE_DONE_OPCODE = `${extensionConfig.id}_whenResponseDone`;
-  var DEFAULT_RELAY_ENDPOINT = "http://127.0.0.1:8787";
+  var TIME_LIMIT_OPCODE = `${extensionConfig.id}_whenSessionTimeLimitReached`;
+  var USAGE_FIELDS = {
+  	costUSD: (usage) => Math.round(usage.estimatedCostUsd * 1e6) / 1e6,
+  	responses: (usage) => usage.responses,
+  	inputTokens: (usage) => usage.inputTokens,
+  	outputTokens: (usage) => usage.outputTokens,
+  	cachedInputTokens: (usage) => usage.cachedInputTokens,
+  	textInputTokens: (usage) => usage.textInputTokens,
+  	audioInputTokens: (usage) => usage.audioInputTokens,
+  	textOutputTokens: (usage) => usage.textOutputTokens,
+  	audioOutputTokens: (usage) => usage.audioOutputTokens
+  };
+  /** Block surface over the Realtime composition. */
   var OpenAIRealtimeExtension = class {
   	constructor(deps) {
-  		this.relayEndpoint = DEFAULT_RELAY_ENDPOINT;
-  		this.relaySession = null;
-  		this.settings = defaultSessionSettings();
   		this.lastErrorMessage = "";
-  		this.lastResponse = "";
-  		this.runtime = deps.runtime;
-  		this.fetcher = deps.fetch ?? ((input, init) => fetch(input, init));
-  		this.createTransport = deps.createTransport ?? (() => new WebRtcTransport());
-  		this.now = deps.now ?? Date.now;
-  		this.dispatcher = new FunctionDispatcher(this.runtime, {
-  			hatOpcode: DEFINE_FUNCTION_OPCODE,
-  			knownNames: () => new Set(this.scanFunctions().functions.map((definition) => definition.name))
+  		this.realtime = createRealtimeComposition({
+  			...deps,
+  			functionHatOpcode: DEFINE_FUNCTION_OPCODE
   		});
-  		this.session = new RealtimeSession({
-  			callFunction: (name, args) => this.callExportedFunction(name, args),
-  			onResponseText: (text) => {
-  				this.lastResponse = text;
-  				this.runtime.startHats(RESPONSE_DONE_OPCODE);
-  			},
-  			onError: (message) => {
-  				this.lastErrorMessage = message;
-  			},
-  			onStateChange: (state) => {
-  				if (state !== "connected" && state !== "connecting") this.dispatcher.cancelAll("The Realtime session ended.");
-  			}
+  		this.realtime.subscribe((event) => {
+  			if (event.type === "response") deps.runtime.startHats(RESPONSE_DONE_OPCODE);
+  			else if (event.type === "sessionTimeLimitReached") deps.runtime.startHats(TIME_LIMIT_OPCODE);
+  			else if (event.type === "error") this.lastErrorMessage = event.message;
   		});
   	}
   	getInfo() {
@@ -894,78 +1446,65 @@
   		};
   	}
   	configureRelay(args) {
-  		this.record(() => {
-  			this.relayEndpoint = normalizeRelayEndpoint(Scratch.Cast.toString(args.ENDPOINT));
-  			this.relaySession = null;
-  		});
+  		this.record(() => this.realtime.configureRelay(Scratch.Cast.toString(args.ENDPOINT)));
   	}
   	pairRelay(args) {
-  		return this.recordAsync(async () => {
-  			this.relaySession = await pairWithRelay(this.relayEndpoint, Scratch.Cast.toString(args.CODE), this.fetcher, this.now);
-  		});
+  		return this.recordAsync(() => this.realtime.pairRelay(Scratch.Cast.toString(args.CODE)));
   	}
   	isRelayPaired() {
-  		return this.relaySession !== null && this.relaySession.expiresAt > this.now();
+  		return this.realtime.isRelayPaired();
   	}
   	setInstructions(args) {
-  		this.record(() => {
-  			this.settings = {
-  				...this.settings,
-  				instructions: normalizeInstructions(Scratch.Cast.toString(args.TEXT))
-  			};
-  		});
+  		this.record(() => this.realtime.setInstructions(Scratch.Cast.toString(args.TEXT)));
   	}
   	setVoice(args) {
-  		this.record(() => {
-  			this.settings = {
-  				...this.settings,
-  				voice: normalizeVoice(Scratch.Cast.toString(args.VOICE))
-  			};
-  		});
+  		this.record(() => this.realtime.setVoice(Scratch.Cast.toString(args.VOICE)));
   	}
   	setOutputMode(args) {
-  		this.record(() => {
-  			this.settings = {
-  				...this.settings,
-  				outputMode: normalizeOutputMode(Scratch.Cast.toString(args.MODE))
-  			};
-  		});
+  		this.record(() => this.realtime.setOutputMode(normalizeOutputMode(Scratch.Cast.toString(args.MODE))));
+  	}
+  	setModel(args) {
+  		this.record(() => this.realtime.setModel(Scratch.Cast.toString(args.MODEL)));
+  	}
+  	setSessionTimeLimit(args) {
+  		this.record(() => this.realtime.setSessionTimeLimit(Scratch.Cast.toNumber(args.SECONDS)));
   	}
   	connect(args) {
-  		return this.recordAsync(async () => {
-  			if (!this.relaySession || !this.isRelayPaired()) throw new Error("Pair with the local relay first.");
-  			const scan = this.scanFunctions();
-  			if (scan.errors.length > 0) throw new Error(`Invalid function definitions: ${scan.errors.join("; ")}`);
-  			const request = buildSessionRequest(this.settings, toFunctionTools(scan.functions));
-  			const secret = await requestClientSecret(this.relaySession, request, this.fetcher, this.now);
-  			const microphone = Scratch.Cast.toString(args.MICROPHONE) !== "off";
-  			await this.session.open(this.createTransport(), secret.value, microphone);
-  		});
+  		return this.recordAsync(() => this.realtime.connect({ microphone: Scratch.Cast.toString(args.MICROPHONE) !== "off" }));
   	}
   	disconnect() {
-  		this.session.close();
+  		this.realtime.disconnect();
   	}
   	isConnected() {
-  		return this.session.state === "connected";
+  		return this.realtime.state === "connected";
   	}
   	connectionState() {
-  		return this.session.state;
+  		return this.realtime.state;
+  	}
+  	currentModel() {
+  		return this.realtime.activeModel;
+  	}
+  	sessionElapsed() {
+  		return Math.floor(this.realtime.sessionElapsedSeconds());
+  	}
+  	whenSessionTimeLimitReached() {
+  		return true;
   	}
   	sendText(args) {
-  		this.record(() => this.session.sendText(Scratch.Cast.toString(args.TEXT)));
+  		this.record(() => this.realtime.sendText(Scratch.Cast.toString(args.TEXT)));
   	}
   	whenResponseDone() {
   		return true;
   	}
   	lastResponseText() {
-  		return this.lastResponse;
+  		return this.realtime.lastResponseText;
   	}
   	defineFunction(args, util) {
-  		return this.dispatcher.matchHat(Scratch.Cast.toString(args.NAME), util?.thread);
+  		return this.realtime.matchFunctionHat(Scratch.Cast.toString(args.NAME), util?.thread);
   	}
   	functionArgument(args, util) {
   		try {
-  			return toScratchValue(readArgumentPath(this.dispatcher.argumentsFor(util?.thread), Scratch.Cast.toString(args.PATH)));
+  			return toScratchValue(readArgumentPath(this.realtime.functionArguments(util?.thread), Scratch.Cast.toString(args.PATH)));
   		} catch (error) {
   			this.lastErrorMessage = messageOf(error);
   			return "";
@@ -973,7 +1512,7 @@
   	}
   	functionArgumentsJson(_args, util) {
   		try {
-  			return JSON.stringify(this.dispatcher.argumentsFor(util?.thread) ?? null);
+  			return JSON.stringify(this.realtime.functionArguments(util?.thread) ?? null);
   		} catch (error) {
   			this.lastErrorMessage = messageOf(error);
   			return "";
@@ -981,22 +1520,21 @@
   	}
   	returnValue(args, util) {
   		try {
-  			this.dispatcher.returnFrom(util?.thread, parseReturnValue(Scratch.Cast.toString(args.VALUE)));
+  			this.realtime.returnFromFunction(util?.thread, parseJsonOrText(Scratch.Cast.toString(args.VALUE)));
   			util?.stopThisScript?.();
   		} catch (error) {
   			this.lastErrorMessage = messageOf(error);
   		}
   	}
+  	usageValue(args) {
+  		const read = USAGE_FIELDS[Scratch.Cast.toString(args.FIELD)];
+  		return read ? read(this.realtime.usage()) : "";
+  	}
+  	resetUsage() {
+  		this.realtime.resetUsage();
+  	}
   	lastError() {
   		return this.lastErrorMessage;
-  	}
-  	scanFunctions() {
-  		return scanFunctionDefinitions(this.runtime.targets, DEFINE_FUNCTION_OPCODE);
-  	}
-  	callExportedFunction(name, args) {
-  		const definition = this.scanFunctions().functions.find((candidate) => candidate.name === name);
-  		if (!definition || definition.exportAs !== "tool") return Promise.reject(/* @__PURE__ */ new Error(`Function ${name} is not exported as a tool.`));
-  		return this.dispatcher.invoke(name, args);
   	}
   	record(action) {
   		try {

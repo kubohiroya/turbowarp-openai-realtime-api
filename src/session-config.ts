@@ -1,14 +1,10 @@
-export type OutputMode = 'audio' | 'text';
+import type {FunctionTool} from '@kubohiroya/turbowarp-named-functions/composition';
 
-export interface FunctionTool {
-  type: 'function';
-  name: string;
-  description: string;
-  parameters: Record<string, unknown>;
-}
+export type OutputMode = 'audio' | 'text';
 
 /** Request body sent to the relay's client-secret route (see capability-proxy). */
 export interface RealtimeSessionRequest {
+  model?: string;
   instructions?: string;
   voice?: string;
   outputModalities?: [OutputMode];
@@ -16,6 +12,8 @@ export interface RealtimeSessionRequest {
 }
 
 export interface SessionSettings {
+  /** Empty means the relay's default model. */
+  model: string;
   instructions: string;
   voice: string;
   outputMode: OutputMode;
@@ -24,9 +22,19 @@ export interface SessionSettings {
 export const MAX_INSTRUCTIONS_LENGTH = 16384;
 export const MAX_TOOLS = 32;
 const VOICE_PATTERN = /^[a-z0-9_-]{1,32}$/u;
+const MODEL_PATTERN = /^[A-Za-z0-9._:-]{1,128}$/u;
+
+export const SUPPORTED_MODELS = ['gpt-realtime-2.1-mini', 'gpt-realtime-2.1'] as const;
 
 export function defaultSessionSettings(): SessionSettings {
-  return {instructions: '', voice: 'marin', outputMode: 'audio'};
+  return {model: '', instructions: '', voice: 'marin', outputMode: 'audio'};
+}
+
+/** Accepts an empty string (relay default) or a model identifier; the relay decides what is allowed. */
+export function normalizeModel(value: string): string {
+  const model = value.trim();
+  if (model.length > 0 && !MODEL_PATTERN.test(model)) throw new TypeError('Model must be a model identifier.');
+  return model;
 }
 
 export function normalizeVoice(value: string): string {
@@ -56,6 +64,7 @@ export function buildSessionRequest(
     voice: settings.voice,
     outputModalities: [settings.outputMode]
   };
+  if (settings.model.length > 0) request.model = settings.model;
   if (settings.instructions.length > 0) request.instructions = settings.instructions;
   if (tools.length > 0) request.tools = tools.map((tool) => ({...tool}));
   return request;

@@ -1,26 +1,18 @@
 import {extensionConfig} from './config';
 import definitions from './block-definitions.json';
-import {FunctionDispatcher, parseReturnValue, readArgumentPath, toScratchValue} from './function-dispatcher.js';
-import {scanFunctionDefinitions, toFunctionTools} from './function-registry.js';
-import {RealtimeSession} from './realtime-session.js';
 import {
-  normalizeRelayEndpoint,
-  pairWithRelay,
-  requestClientSecret,
-  type FetchLike,
-  type RelaySession
-} from './relay-client.js';
-import type {BlockUtilityLike, RuntimeLike} from './runtime-types.js';
+  createRealtimeComposition,
+  type RealtimeComposition,
+  type RealtimeCompositionOptions,
+  type UsageTotals
+} from './composition.js';
 import {
-  buildSessionRequest,
-  defaultSessionSettings,
-  normalizeInstructions,
-  normalizeOutputMode,
-  normalizeVoice,
-  type SessionSettings
-} from './session-config.js';
-import type {RealtimeTransport} from './transport.js';
-import {WebRtcTransport} from './webrtc-transport.js';
+  parseJsonOrText,
+  readArgumentPath,
+  toScratchValue,
+  type BlockUtilityLike
+} from '@kubohiroya/turbowarp-named-functions/composition';
+import {normalizeOutputMode} from './session-config.js';
 
 type BlockTypeName = 'COMMAND' | 'REPORTER' | 'BOOLEAN' | 'HAT';
 type ArgumentTypeName = 'STRING' | 'NUMBER' | 'BOOLEAN';
@@ -49,53 +41,35 @@ const menuDefinitions = definitions.menus as Record<string, MenuDefinition>;
 
 export const DEFINE_FUNCTION_OPCODE = `${extensionConfig.id}_defineFunction`;
 export const RESPONSE_DONE_OPCODE = `${extensionConfig.id}_whenResponseDone`;
-export const DEFAULT_RELAY_ENDPOINT = 'http://127.0.0.1:8787';
+export const TIME_LIMIT_OPCODE = `${extensionConfig.id}_whenSessionTimeLimitReached`;
 
-export interface RealtimeExtensionDependencies {
-  runtime: RuntimeLike;
-  fetch?: FetchLike;
-  createTransport?: () => RealtimeTransport;
-  now?: () => number;
-}
+export type RealtimeExtensionDependencies = Omit<RealtimeCompositionOptions, 'functionHatOpcode'>;
 
 type Args = Record<string, unknown>;
 
+const USAGE_FIELDS: Record<string, (usage: UsageTotals) => number> = {
+  costUSD: (usage) => Math.round(usage.estimatedCostUsd * 1_000_000) / 1_000_000,
+  responses: (usage) => usage.responses,
+  inputTokens: (usage) => usage.inputTokens,
+  outputTokens: (usage) => usage.outputTokens,
+  cachedInputTokens: (usage) => usage.cachedInputTokens,
+  textInputTokens: (usage) => usage.textInputTokens,
+  audioInputTokens: (usage) => usage.audioInputTokens,
+  textOutputTokens: (usage) => usage.textOutputTokens,
+  audioOutputTokens: (usage) => usage.audioOutputTokens
+};
+
+/** Block surface over the Realtime composition. */
 export class OpenAIRealtimeExtension implements TurboWarpExtension {
-  private relayEndpoint = DEFAULT_RELAY_ENDPOINT;
-  private relaySession: RelaySession | null = null;
-  private settings: SessionSettings = defaultSessionSettings();
   private lastErrorMessage = '';
-  private lastResponse = '';
-  private readonly runtime: RuntimeLike;
-  private readonly fetcher: FetchLike;
-  private readonly createTransport: () => RealtimeTransport;
-  private readonly now: () => number;
-  private readonly dispatcher: FunctionDispatcher;
-  private readonly session: RealtimeSession;
+  private readonly realtime: RealtimeComposition;
 
   public constructor(deps: RealtimeExtensionDependencies) {
-    this.runtime = deps.runtime;
-    this.fetcher = deps.fetch ?? ((input, init) => fetch(input, init));
-    this.createTransport = deps.createTransport ?? (() => new WebRtcTransport());
-    this.now = deps.now ?? Date.now;
-    this.dispatcher = new FunctionDispatcher(this.runtime, {
-      hatOpcode: DEFINE_FUNCTION_OPCODE,
-      knownNames: () => new Set(this.scanFunctions().functions.map((definition) => definition.name))
-    });
-    this.session = new RealtimeSession({
-      callFunction: (name, args) => this.callExportedFunction(name, args),
-      onResponseText: (text) => {
-        this.lastResponse = text;
-        this.runtime.startHats(RESPONSE_DONE_OPCODE);
-      },
-      onError: (message) => {
-        this.lastErrorMessage = message;
-      },
-      onStateChange: (state) => {
-        if (state !== 'connected' && state !== 'connecting') {
-          this.dispatcher.cancelAll('The Realtime session ended.');
-        }
-      }
+    this.realtime = createRealtimeComposition({...deps, functionHatOpcode: DEFINE_FUNCTION_OPCODE});
+    this.realtime.subscribe((event) => {
+      if (event.type === 'response') deps.runtime.startHats(RESPONSE_DONE_OPCODE);
+      else if (event.type === 'sessionTimeLimitReached') deps.runtime.startHats(TIME_LIMIT_OPCODE);
+      else if (event.type === 'error') this.lastErrorMessage = event.message;
     });
   }
 
@@ -118,79 +92,75 @@ export class OpenAIRealtimeExtension implements TurboWarpExtension {
   // ---- relay ------------------------------------------------------------------------------
 
   public configureRelay(args: Args): void {
-    this.record(() => {
-      this.relayEndpoint = normalizeRelayEndpoint(Scratch.Cast.toString(args.ENDPOINT));
-      this.relaySession = null;
-    });
+    this.record(() => this.realtime.configureRelay(Scratch.Cast.toString(args.ENDPOINT)));
   }
 
   public pairRelay(args: Args): Promise<void> {
-    return this.recordAsync(async () => {
-      this.relaySession = await pairWithRelay(
-        this.relayEndpoint,
-        Scratch.Cast.toString(args.CODE),
-        this.fetcher,
-        this.now
-      );
-    });
+    return this.recordAsync(() => this.realtime.pairRelay(Scratch.Cast.toString(args.CODE)));
   }
 
   public isRelayPaired(): boolean {
-    return this.relaySession !== null && this.relaySession.expiresAt > this.now();
+    return this.realtime.isRelayPaired();
   }
 
   // ---- session settings ---------------------------------------------------------------------
 
   public setInstructions(args: Args): void {
-    this.record(() => {
-      this.settings = {...this.settings, instructions: normalizeInstructions(Scratch.Cast.toString(args.TEXT))};
-    });
+    this.record(() => this.realtime.setInstructions(Scratch.Cast.toString(args.TEXT)));
   }
 
   public setVoice(args: Args): void {
-    this.record(() => {
-      this.settings = {...this.settings, voice: normalizeVoice(Scratch.Cast.toString(args.VOICE))};
-    });
+    this.record(() => this.realtime.setVoice(Scratch.Cast.toString(args.VOICE)));
   }
 
   public setOutputMode(args: Args): void {
-    this.record(() => {
-      this.settings = {...this.settings, outputMode: normalizeOutputMode(Scratch.Cast.toString(args.MODE))};
-    });
+    this.record(() => this.realtime.setOutputMode(normalizeOutputMode(Scratch.Cast.toString(args.MODE))));
+  }
+
+  public setModel(args: Args): void {
+    this.record(() => this.realtime.setModel(Scratch.Cast.toString(args.MODEL)));
+  }
+
+  public setSessionTimeLimit(args: Args): void {
+    this.record(() => this.realtime.setSessionTimeLimit(Scratch.Cast.toNumber(args.SECONDS)));
   }
 
   // ---- connection ---------------------------------------------------------------------------
 
   public connect(args: Args): Promise<void> {
-    return this.recordAsync(async () => {
-      if (!this.relaySession || !this.isRelayPaired()) {
-        throw new Error('Pair with the local relay first.');
-      }
-      const scan = this.scanFunctions();
-      if (scan.errors.length > 0) throw new Error(`Invalid function definitions: ${scan.errors.join('; ')}`);
-      const request = buildSessionRequest(this.settings, toFunctionTools(scan.functions));
-      const secret = await requestClientSecret(this.relaySession, request, this.fetcher, this.now);
-      const microphone = Scratch.Cast.toString(args.MICROPHONE) !== 'off';
-      await this.session.open(this.createTransport(), secret.value, microphone);
-    });
+    return this.recordAsync(() =>
+      this.realtime.connect({microphone: Scratch.Cast.toString(args.MICROPHONE) !== 'off'})
+    );
   }
 
   public disconnect(): void {
-    this.session.close();
+    this.realtime.disconnect();
   }
 
   public isConnected(): boolean {
-    return this.session.state === 'connected';
+    return this.realtime.state === 'connected';
   }
 
   public connectionState(): string {
-    return this.session.state;
+    return this.realtime.state;
+  }
+
+  public currentModel(): string {
+    return this.realtime.activeModel;
+  }
+
+  public sessionElapsed(): number {
+    return Math.floor(this.realtime.sessionElapsedSeconds());
+  }
+
+  public whenSessionTimeLimitReached(): boolean {
+    return true;
   }
 
   // ---- conversation -------------------------------------------------------------------------
 
   public sendText(args: Args): void {
-    this.record(() => this.session.sendText(Scratch.Cast.toString(args.TEXT)));
+    this.record(() => this.realtime.sendText(Scratch.Cast.toString(args.TEXT)));
   }
 
   public whenResponseDone(): boolean {
@@ -198,18 +168,18 @@ export class OpenAIRealtimeExtension implements TurboWarpExtension {
   }
 
   public lastResponseText(): string {
-    return this.lastResponse;
+    return this.realtime.lastResponseText;
   }
 
   // ---- function values ----------------------------------------------------------------------
 
   public defineFunction(args: Args, util?: BlockUtilityLike): boolean {
-    return this.dispatcher.matchHat(Scratch.Cast.toString(args.NAME), util?.thread);
+    return this.realtime.matchFunctionHat(Scratch.Cast.toString(args.NAME), util?.thread);
   }
 
   public functionArgument(args: Args, util?: BlockUtilityLike): string | number | boolean {
     try {
-      const value = readArgumentPath(this.dispatcher.argumentsFor(util?.thread), Scratch.Cast.toString(args.PATH));
+      const value = readArgumentPath(this.realtime.functionArguments(util?.thread), Scratch.Cast.toString(args.PATH));
       return toScratchValue(value);
     } catch (error) {
       this.lastErrorMessage = messageOf(error);
@@ -219,7 +189,7 @@ export class OpenAIRealtimeExtension implements TurboWarpExtension {
 
   public functionArgumentsJson(_args: Args, util?: BlockUtilityLike): string {
     try {
-      return JSON.stringify(this.dispatcher.argumentsFor(util?.thread) ?? null);
+      return JSON.stringify(this.realtime.functionArguments(util?.thread) ?? null);
     } catch (error) {
       this.lastErrorMessage = messageOf(error);
       return '';
@@ -228,32 +198,29 @@ export class OpenAIRealtimeExtension implements TurboWarpExtension {
 
   public returnValue(args: Args, util?: BlockUtilityLike & {stopThisScript?: () => void}): void {
     try {
-      this.dispatcher.returnFrom(util?.thread, parseReturnValue(Scratch.Cast.toString(args.VALUE)));
+      this.realtime.returnFromFunction(util?.thread, parseJsonOrText(Scratch.Cast.toString(args.VALUE)));
       util?.stopThisScript?.();
     } catch (error) {
       this.lastErrorMessage = messageOf(error);
     }
   }
 
-  // ---- diagnostics --------------------------------------------------------------------------
+  // ---- usage and diagnostics ----------------------------------------------------------------
+
+  public usageValue(args: Args): number | string {
+    const read = USAGE_FIELDS[Scratch.Cast.toString(args.FIELD)];
+    return read ? read(this.realtime.usage()) : '';
+  }
+
+  public resetUsage(): void {
+    this.realtime.resetUsage();
+  }
 
   public lastError(): string {
     return this.lastErrorMessage;
   }
 
   // ---- internals ----------------------------------------------------------------------------
-
-  private scanFunctions() {
-    return scanFunctionDefinitions(this.runtime.targets, DEFINE_FUNCTION_OPCODE);
-  }
-
-  private callExportedFunction(name: string, args: unknown): Promise<unknown> {
-    const definition = this.scanFunctions().functions.find((candidate) => candidate.name === name);
-    if (!definition || definition.exportAs !== 'tool') {
-      return Promise.reject(new Error(`Function ${name} is not exported as a tool.`));
-    }
-    return this.dispatcher.invoke(name, args);
-  }
 
   private record(action: () => void): void {
     try {

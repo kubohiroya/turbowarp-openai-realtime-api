@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@kubohiroya/turbowarp-named-functions':
+        specifier: 0.1.0
+        version: 0.1.0
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.5
@@ -261,6 +265,10 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@kubohiroya/turbowarp-named-functions@0.1.0':
+    resolution: {integrity: sha512-9THbxMmkM22nzVZAqf0/SMeNxtEQv+8WzSLezhc8uy1T2RfZvfspHKPWNu7eUReN2gg74Snj6z3w3FFn/cWWEQ==}
+    engines: {node: '>=22.18.0'}
 
   '@kubohiroya/vite-plugin-turbowarp-extension@0.3.0':
     resolution: {integrity: sha512-8JsF0BSMU9Q7MDQJtCzYmL9+4ZV8Q0EuAUdZUhGuAHjnTky8ss3zI+me2Tn1i2Ke24pzv311Tx4wGYkb2DaqhA==}
@@ -1193,6 +1201,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@kubohiroya/turbowarp-named-functions@0.1.0': {}
 
   '@kubohiroya/vite-plugin-turbowarp-extension@0.3.0(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0))':
     dependencies:
