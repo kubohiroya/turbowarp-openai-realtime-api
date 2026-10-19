@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://kubohiroya.github.io/turbowarp-openai-realtime-api/schemas/block-editor-fixed-inputs.schema.json",
+  "title": "turbowarp-openai-realtime-api fixed editing contracts",
+  "$defs": {
+    "setOutputMode": {
+      "type": "object",
+      "properties": {
+        "MODE": {
+          "type": "string",
+          "enum": ["audio", "text"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "setSessionTimeLimit": {
+      "type": "object",
+      "properties": {
+        "SECONDS": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "connect": {
+      "type": "object",
+      "properties": {
+        "MICROPHONE": {
+          "type": "string",
+          "enum": ["on", "off"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "defineFunction": {
+      "type": "object",
+      "properties": {
+        "EXPORT": {
+          "type": "string",
+          "enum": ["tool", "none"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "usageValue": {
+      "type": "object",
+      "properties": {
+        "FIELD": {
+          "type": "string",
+          "enum": [
+            "costUSD",
+            "responses",
+            "inputTokens",
+            "outputTokens",
+            "cachedInputTokens",
+            "textInputTokens",
+            "audioInputTokens",
+            "textOutputTokens",
+            "audioOutputTokens"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -19,6 +19,209 @@
   	docsURI: "https://kubohiroya.github.io/turbowarp-openai-realtime-api/",
   	blockIconURI: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCI+PHBhdGggZD0iTTggMTBoMzJhNCA0IDAgMCAxIDQgNHYxNmE0IDQgMCAwIDEtNCA0SDIybC05IDd2LTdIOGE0IDQgMCAwIDEtNC00VjE0YTQgNCAwIDAgMSA0LTR6IiBmaWxsPSIjMTBBMzdGIi8+PGcgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PHBhdGggZD0iTTE0IDE5djYiLz48cGF0aCBkPSJNMjAgMTZ2MTIiLz48cGF0aCBkPSJNMjYgMTh2OCIvPjxwYXRoIGQ9Ik0zMiAxNXYxNCIvPjxwYXRoIGQ9Ik0zOCAyMHY0Ii8+PC9nPjwvc3ZnPg=="
   };
+  var block_editor_fixed_inputs_schema_default = {
+  	$schema: "http://json-schema.org/draft-07/schema#",
+  	$id: "https://kubohiroya.github.io/turbowarp-openai-realtime-api/schemas/block-editor-fixed-inputs.schema.json",
+  	title: "turbowarp-openai-realtime-api fixed editing contracts",
+  	$defs: {
+  		"setOutputMode": {
+  			"type": "object",
+  			"properties": { "MODE": {
+  				"type": "string",
+  				"enum": ["audio", "text"]
+  			} },
+  			"additionalProperties": false
+  		},
+  		"setSessionTimeLimit": {
+  			"type": "object",
+  			"properties": { "SECONDS": {
+  				"type": "number",
+  				"minimum": 0
+  			} },
+  			"additionalProperties": false
+  		},
+  		"connect": {
+  			"type": "object",
+  			"properties": { "MICROPHONE": {
+  				"type": "string",
+  				"enum": ["on", "off"]
+  			} },
+  			"additionalProperties": false
+  		},
+  		"defineFunction": {
+  			"type": "object",
+  			"properties": { "EXPORT": {
+  				"type": "string",
+  				"enum": ["tool", "none"]
+  			} },
+  			"additionalProperties": false
+  		},
+  		"usageValue": {
+  			"type": "object",
+  			"properties": { "FIELD": {
+  				"type": "string",
+  				"enum": [
+  					"costUSD",
+  					"responses",
+  					"inputTokens",
+  					"outputTokens",
+  					"cachedInputTokens",
+  					"textInputTokens",
+  					"audioInputTokens",
+  					"textOutputTokens",
+  					"audioOutputTokens"
+  				]
+  			} },
+  			"additionalProperties": false
+  		}
+  	}
+  };
+  //#endregion
+  //#region src/fixed-input-editors.ts
+  var contracts = block_editor_fixed_inputs_schema_default.$defs;
+  var repository = "turbowarp-openai-realtime-api";
+  var extensionId = "kubohiroyaopenairealtime";
+  var token = /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/u;
+  function readNumber(value) {
+  	if (typeof value !== "string" && typeof value !== "number") throw new TypeError("Invalid numeric projection.");
+  	if (typeof value === "string" && value.trim() === "") throw new TypeError("Existing blank field is readonly.");
+  	const number = Number(value);
+  	if (!Number.isFinite(number)) throw new TypeError("Existing nonfinite field is readonly.");
+  	return number;
+  }
+  function newNumberToken(value) {
+  	if (typeof value === "number") {
+  		if (!Number.isFinite(value)) throw new TypeError("Invalid new number.");
+  		return Object.is(value, -0) ? "-0" : String(value);
+  	}
+  	if (typeof value !== "string" || !token.test(value.trim()) || !Number.isFinite(Number(value))) throw new TypeError("Invalid new number.");
+  	return value.trim();
+  }
+  function existingChoice(_opcode, value) {
+  	if (typeof value !== "string") throw new TypeError("Invalid string projection.");
+  	return value;
+  }
+  function candidateValid(_opcode, _argument, schema, value) {
+  	if (schema.type === "number" || schema.type === "integer") {
+  		let number;
+  		try {
+  			number = readNumber(value);
+  		} catch {
+  			return false;
+  		}
+  		if (schema.type === "integer" && !Number.isInteger(number)) return false;
+  		if (schema.minimum !== void 0 && number < schema.minimum) return false;
+  		if (schema.maximum !== void 0 && number > schema.maximum) return false;
+  		if (schema.exclusiveMinimum !== void 0 && number <= schema.exclusiveMinimum) return false;
+  		if (schema.enum && !schema.enum.includes(number)) return false;
+  		return true;
+  	}
+  	return typeof value === "string" && schema.enum.includes(value);
+  }
+  function fixedInputEditorOptions() {
+  	return Object.entries(contracts).map(([opcode, contract]) => ({
+  		apiVersion: 1,
+  		extensionId,
+  		editorId: `${extensionId}.fixed.${opcode}`,
+  		opcodes: [`${extensionId}_${opcode}`],
+  		contractId: `${repository}.${opcode}.fixed`,
+  		contractRevision: "fixed-inputs-v1",
+  		validationContext: () => ({
+  			consumerId: repository,
+  			nowMs: 0,
+  			settings: null
+  		}),
+  		bindings: Object.entries(contract.properties).map(([argument, schema]) => {
+  			const numeric = schema.type === "number" || schema.type === "integer";
+  			const source = {
+  				repository,
+  				path: "schemas/block-editor-fixed-inputs.schema.json",
+  				symbol: `/$defs/${opcode}/properties/${argument}`
+  			};
+  			return {
+  				argument,
+  				schemaBundle: {
+  					identity: {
+  						ownerId: repository,
+  						contractId: `${opcode}.${argument}`,
+  						revision: "fixed-inputs-v1",
+  						variantId: "fixed"
+  					},
+  					dialect: "draft-07",
+  					root: {
+  						retrievalUri: `${block_editor_fixed_inputs_schema_default.$id}?binding=${opcode}.${argument}`,
+  						document: schema,
+  						artifact: {
+  							role: "canonical-schema",
+  							source
+  						}
+  					},
+  					resources: [],
+  					provenance: {
+  						canonicalSources: [
+  							source,
+  							{
+  								repository,
+  								path: "src/block-definitions.json"
+  							},
+  							{
+  								repository,
+  								path: "src/extension.ts",
+  								symbol: opcode
+  							}
+  						],
+  						generatedFiles: [],
+  						referenceSchemas: [],
+  						generationSources: []
+  					}
+  				},
+  				control: numeric ? { kind: "number" } : {
+  					kind: "enum",
+  					choices: schema.enum.map((value) => ({
+  						value,
+  						label: String(value)
+  					}))
+  				},
+  				read: (value) => numeric ? readNumber(value) : existingChoice(opcode, value),
+  				encode: (value) => {
+  					if (numeric) return newNumberToken(value);
+  					if (typeof value !== "string" || !schema.enum.includes(value)) throw new TypeError("Invalid new enum value.");
+  					return value;
+  				},
+  				validateCandidate: (value) => candidateValid(opcode, argument, schema, value) ? [] : [{
+  					path: argument,
+  					message: "Check this value before saving."
+  				}]
+  			};
+  		})
+  	}));
+  }
+  /** Register only visible static contracts; ordinary composition consumers load no editor runtime. */
+  function registerFixedInputEditors(scratch, runtime, visibleBlocks) {
+  	const api = scratch.gui?.blockEditors;
+  	if (api?.apiVersion !== 1 || typeof api.registerFixedInputEditor !== "function") return void 0;
+  	const visibleOpcodes = new Set(visibleBlocks.flatMap((block) => {
+  		if (typeof block !== "object" || block === null || !("opcode" in block)) return [];
+  		return typeof block.opcode === "string" ? [block.opcode] : [];
+  	}));
+  	const events = runtime;
+  	const removers = [];
+  	let active = true;
+  	const dispose = () => {
+  		if (!active) return;
+  		active = false;
+  		events?.off?.("RUNTIME_DISPOSED", dispose);
+  		for (const remove of removers.splice(0).reverse()) remove();
+  	};
+  	try {
+  		for (const options of fixedInputEditorOptions()) if (options.opcodes.some((opcode) => visibleOpcodes.has(opcode.slice(25)))) removers.push(api.registerFixedInputEditor.call(api, options));
+  		events?.on?.("RUNTIME_DISPOSED", dispose);
+  	} catch (error) {
+  		dispose();
+  		throw error;
+  	}
+  	return dispose;
+  }
   var block_definitions_default = {
   	extensionName: "OpenAI Realtime",
   	blocks: [
@@ -1422,6 +1625,7 @@
   var OpenAIRealtimeExtension = class {
   	constructor(deps) {
   		this.lastErrorMessage = "";
+  		this.fixedEditorRuntime = deps.runtime;
   		this.realtime = createRealtimeComposition({
   			...deps,
   			functionHatOpcode: DEFINE_FUNCTION_OPCODE
@@ -1433,7 +1637,7 @@
   		});
   	}
   	getInfo() {
-  		return {
+  		const info = {
   			id: extensionConfig.id,
   			name: Scratch.translate(block_definitions_default.extensionName),
   			docsURI: extensionConfig.docsURI,
@@ -1444,6 +1648,8 @@
   				items: [...menu.items]
   			}]))
   		};
+  		this.fixedEditorsDispose ?? (this.fixedEditorsDispose = registerFixedInputEditors(Scratch, this.fixedEditorRuntime, info.blocks));
+  		return info;
   	}
   	configureRelay(args) {
   		this.record(() => this.realtime.configureRelay(Scratch.Cast.toString(args.ENDPOINT)));

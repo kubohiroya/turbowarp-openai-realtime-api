@@ -1,3 +1,4 @@
+import {registerFixedInputEditors} from './fixed-input-editors.js';
 import {extensionConfig} from './config';
 import definitions from './block-definitions.json';
 import {
@@ -61,10 +62,14 @@ const USAGE_FIELDS: Record<string, (usage: UsageTotals) => number> = {
 
 /** Block surface over the Realtime composition. */
 export class OpenAIRealtimeExtension implements TurboWarpExtension {
+  private readonly fixedEditorRuntime: unknown;
+  private fixedEditorsDispose: (() => void) | undefined;
+
   private lastErrorMessage = '';
   private readonly realtime: RealtimeComposition;
 
   public constructor(deps: RealtimeExtensionDependencies) {
+    this.fixedEditorRuntime = deps.runtime;
     this.realtime = createRealtimeComposition({...deps, functionHatOpcode: DEFINE_FUNCTION_OPCODE});
     this.realtime.subscribe((event) => {
       if (event.type === 'response') deps.runtime.startHats(RESPONSE_DONE_OPCODE);
@@ -74,7 +79,7 @@ export class OpenAIRealtimeExtension implements TurboWarpExtension {
   }
 
   public getInfo(): Record<string, unknown> {
-    return {
+    const info = {
       id: extensionConfig.id,
       name: Scratch.translate(definitions.extensionName),
       docsURI: extensionConfig.docsURI,
@@ -87,6 +92,8 @@ export class OpenAIRealtimeExtension implements TurboWarpExtension {
         ])
       )
     };
+    this.fixedEditorsDispose ??= registerFixedInputEditors(Scratch, this.fixedEditorRuntime, info.blocks);
+    return info;
   }
 
   // ---- relay ------------------------------------------------------------------------------

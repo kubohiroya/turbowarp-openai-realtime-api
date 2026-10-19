@@ -1,0 +1,303 @@
+{
+  "id": "kubohiroyaopenairealtime",
+  "name": "OpenAI Realtime",
+  "docsURI": "https://kubohiroya.github.io/turbowarp-openai-realtime-api/",
+  "blockIconURI": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCI+PHBhdGggZD0iTTggMTBoMzJhNCA0IDAgMCAxIDQgNHYxNmE0IDQgMCAwIDEtNCA0SDIybC05IDd2LTdIOGE0IDQgMCAwIDEtNC00VjE0YTQgNCAwIDAgMSA0LTR6IiBmaWxsPSIjMTBBMzdGIi8+PGcgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PHBhdGggZD0iTTE0IDE5djYiLz48cGF0aCBkPSJNMjAgMTZ2MTIiLz48cGF0aCBkPSJNMjYgMTh2OCIvPjxwYXRoIGQ9Ik0zMiAxNXYxNCIvPjxwYXRoIGQ9Ik0zOCAyMHY0Ii8+PC9nPjwvc3ZnPg==",
+  "blocks": [
+    {
+      "opcode": "configureRelay",
+      "blockType": "command",
+      "text": "configure local relay [ENDPOINT]",
+      "arguments": {
+        "ENDPOINT": {
+          "type": "string",
+          "defaultValue": "http://127.0.0.1:8787"
+        }
+      }
+    },
+    {
+      "opcode": "pairRelay",
+      "blockType": "command",
+      "text": "pair local relay with one-time code [CODE]",
+      "arguments": {
+        "CODE": {
+          "type": "string",
+          "defaultValue": "00000000"
+        }
+      }
+    },
+    {
+      "opcode": "isRelayPaired",
+      "blockType": "Boolean",
+      "text": "local relay paired?",
+      "arguments": {}
+    },
+    {
+      "opcode": "setInstructions",
+      "blockType": "command",
+      "text": "set instructions to [TEXT]",
+      "arguments": {
+        "TEXT": {
+          "type": "string",
+          "defaultValue": "You are a friendly assistant. Answer briefly."
+        }
+      }
+    },
+    {
+      "opcode": "setVoice",
+      "blockType": "command",
+      "text": "set voice to [VOICE]",
+      "arguments": {
+        "VOICE": {
+          "type": "string",
+          "defaultValue": "marin",
+          "menu": "voices"
+        }
+      }
+    },
+    {
+      "opcode": "setOutputMode",
+      "blockType": "command",
+      "text": "set output to [MODE]",
+      "arguments": {
+        "MODE": {
+          "type": "string",
+          "defaultValue": "audio",
+          "menu": "outputModes"
+        }
+      }
+    },
+    {
+      "opcode": "setModel",
+      "blockType": "command",
+      "text": "set model to [MODEL]",
+      "arguments": {
+        "MODEL": {
+          "type": "string",
+          "defaultValue": "gpt-realtime-2.1-mini",
+          "menu": "models"
+        }
+      }
+    },
+    {
+      "opcode": "setSessionTimeLimit",
+      "blockType": "command",
+      "text": "set session time limit to [SECONDS] seconds",
+      "arguments": {
+        "SECONDS": {
+          "type": "number",
+          "defaultValue": "600"
+        }
+      }
+    },
+    {
+      "opcode": "connect",
+      "blockType": "command",
+      "text": "connect to Realtime with microphone [MICROPHONE]",
+      "arguments": {
+        "MICROPHONE": {
+          "type": "string",
+          "defaultValue": "on",
+          "menu": "onOff"
+        }
+      }
+    },
+    {
+      "opcode": "disconnect",
+      "blockType": "command",
+      "text": "disconnect from Realtime",
+      "arguments": {}
+    },
+    {
+      "opcode": "isConnected",
+      "blockType": "Boolean",
+      "text": "connected to Realtime?",
+      "arguments": {}
+    },
+    {
+      "opcode": "connectionState",
+      "blockType": "reporter",
+      "text": "Realtime connection state",
+      "arguments": {}
+    },
+    {
+      "opcode": "currentModel",
+      "blockType": "reporter",
+      "text": "Realtime model",
+      "arguments": {}
+    },
+    {
+      "opcode": "sessionElapsed",
+      "blockType": "reporter",
+      "text": "session elapsed seconds",
+      "arguments": {}
+    },
+    {
+      "opcode": "whenSessionTimeLimitReached",
+      "blockType": "hat",
+      "text": "when session time limit is reached",
+      "arguments": {},
+      "isEdgeActivated": false
+    },
+    {
+      "opcode": "sendText",
+      "blockType": "command",
+      "text": "send text [TEXT]",
+      "arguments": {
+        "TEXT": {
+          "type": "string",
+          "defaultValue": "Hello!"
+        }
+      }
+    },
+    {
+      "opcode": "whenResponseDone",
+      "blockType": "hat",
+      "text": "when assistant finishes responding",
+      "arguments": {},
+      "isEdgeActivated": false
+    },
+    {
+      "opcode": "lastResponseText",
+      "blockType": "reporter",
+      "text": "last assistant response",
+      "arguments": {}
+    },
+    {
+      "opcode": "defineFunction",
+      "blockType": "hat",
+      "text": "define function [NAME] description [DESCRIPTION] args schema [SCHEMA] export as [EXPORT]",
+      "arguments": {
+        "NAME": {
+          "type": "string",
+          "defaultValue": "get_score"
+        },
+        "DESCRIPTION": {
+          "type": "string",
+          "defaultValue": "Returns the player's current score."
+        },
+        "SCHEMA": {
+          "type": "string",
+          "defaultValue": "{\"type\":\"object\",\"properties\":{}}"
+        },
+        "EXPORT": {
+          "type": "string",
+          "defaultValue": "tool",
+          "menu": "exportModes"
+        }
+      },
+      "isEdgeActivated": false
+    },
+    {
+      "opcode": "functionArgument",
+      "blockType": "reporter",
+      "text": "function argument [PATH]",
+      "arguments": {
+        "PATH": {
+          "type": "string",
+          "defaultValue": "city"
+        }
+      }
+    },
+    {
+      "opcode": "functionArgumentsJson",
+      "blockType": "reporter",
+      "text": "function arguments JSON",
+      "arguments": {}
+    },
+    {
+      "opcode": "returnValue",
+      "blockType": "command",
+      "text": "return [VALUE]",
+      "arguments": {
+        "VALUE": {
+          "type": "string",
+          "defaultValue": "{\"score\":10}"
+        }
+      }
+    },
+    {
+      "opcode": "usageValue",
+      "blockType": "reporter",
+      "text": "Realtime usage [FIELD]",
+      "arguments": {
+        "FIELD": {
+          "type": "string",
+          "defaultValue": "costUSD",
+          "menu": "usageFields"
+        }
+      }
+    },
+    {
+      "opcode": "resetUsage",
+      "blockType": "command",
+      "text": "reset Realtime usage",
+      "arguments": {}
+    },
+    {
+      "opcode": "lastError",
+      "blockType": "reporter",
+      "text": "last Realtime error",
+      "arguments": {}
+    }
+  ],
+  "menus": {
+    "voices": {
+      "acceptReporters": true,
+      "items": [
+        "alloy",
+        "ash",
+        "ballad",
+        "cedar",
+        "coral",
+        "echo",
+        "marin",
+        "sage",
+        "shimmer",
+        "verse"
+      ]
+    },
+    "outputModes": {
+      "acceptReporters": false,
+      "items": [
+        "audio",
+        "text"
+      ]
+    },
+    "onOff": {
+      "acceptReporters": false,
+      "items": [
+        "on",
+        "off"
+      ]
+    },
+    "exportModes": {
+      "acceptReporters": false,
+      "items": [
+        "tool",
+        "none"
+      ]
+    },
+    "models": {
+      "acceptReporters": true,
+      "items": [
+        "gpt-realtime-2.1-mini",
+        "gpt-realtime-2.1"
+      ]
+    },
+    "usageFields": {
+      "acceptReporters": false,
+      "items": [
+        "costUSD",
+        "responses",
+        "inputTokens",
+        "outputTokens",
+        "cachedInputTokens",
+        "textInputTokens",
+        "audioInputTokens",
+        "textOutputTokens",
+        "audioOutputTokens"
+      ]
+    }
+  }
+}

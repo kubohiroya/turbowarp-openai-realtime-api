@@ -7,6 +7,8 @@ export type RealtimeExtensionDependencies = Omit<RealtimeCompositionOptions, 'fu
 type Args = Record<string, unknown>;
 /** Block surface over the Realtime composition. */
 export declare class OpenAIRealtimeExtension implements TurboWarpExtension {
+    private readonly fixedEditorRuntime;
+    private fixedEditorsDispose;
     private lastErrorMessage;
     private readonly realtime;
     constructor(deps: RealtimeExtensionDependencies);
