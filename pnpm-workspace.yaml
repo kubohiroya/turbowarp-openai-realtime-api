@@ -1,6 +1,7 @@
 allowBuilds:
-  "@kubohiroya/turbowarp-extension-data-editor@https://codeload.github.com/kubohiroya/turbowarp-extension-data-editor/tar.gz/485f0e550e622235624b5e9176820161aeeba252": true
   esbuild: false
 minimumReleaseAgeExclude:
-  - "@kubohiroya/vite-plugin-turbowarp-extension@0.3.0"
-  - "@kubohiroya/turbowarp-named-functions@0.1.0"
+  - '@kubohiroya/turbowarp-extension-data-editor@0.2.1'
+  - '@kubohiroya/turbowarp-extension-manifest@0.3.2'
+  - '@kubohiroya/turbowarp-named-functions@0.1.1'
+  - '@kubohiroya/vite-plugin-turbowarp-extension@0.6.1'
