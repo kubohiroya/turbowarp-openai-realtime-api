@@ -43,7 +43,7 @@ The reviewed JavaScript build is committed to this repository, so users do not n
 Install an exact version that you have reviewed:
 
 ```bash
-pnpm add --save-exact @kubohiroya/turbowarp-openai-realtime-api@0.1.0
+pnpm add --save-exact @kubohiroya/turbowarp-openai-realtime-api@0.1.1
 ```
 
 Standalone bundle:
@@ -413,3 +413,15 @@ SCRATCH_VM_PATH=/path/to/TurboWarp/scratch-vm pnpm test
 ## License
 
 [Mozilla Public License 2.0](LICENSE) (SPDX: `MPL-2.0`).
+
+## Fixed input editing
+
+With a compatible TurboWarp GUI, enable fixed-input forms to edit only standard literal fields. Numbers use complete finite JSON number tokens; menu fields use existing choices. Connected reporters and unavailable fields stay read-only and are never evaluated. Saving an unchanged form preserves exact existing raw values, including legacy spellings and unknown choices. Invalid drafts stay in the same editing session; cancel, project/target replacement, or block removal discards them. Disabling the GUI feature flag restores native field editing. This form does not run blocks, open network/audio/key/QR sessions, resolve names, or edit Schema arguments.
+
+Canonical contracts: `schemas/block-editor-fixed-inputs.schema.json`; codecs and optional registration: `src/fixed-input-editors.ts`. These contracts describe new fixed-field candidates; they do not redefine all runtime data. The GUI integration is optional and existing standalone/composition APIs stay available.
+
+- `setOutputMode`: MODE — [block documentation](https://kubohiroya.github.io/turbowarp-openai-realtime-api/#block-setOutputMode).
+- `setSessionTimeLimit`: SECONDS — [block documentation](https://kubohiroya.github.io/turbowarp-openai-realtime-api/#block-setSessionTimeLimit).
+- `connect`: MICROPHONE — [block documentation](https://kubohiroya.github.io/turbowarp-openai-realtime-api/#block-connect).
+- `defineFunction`: EXPORT — [block documentation](https://kubohiroya.github.io/turbowarp-openai-realtime-api/#block-defineFunction).
+- `usageValue`: FIELD — [block documentation](https://kubohiroya.github.io/turbowarp-openai-realtime-api/#block-usageValue).
