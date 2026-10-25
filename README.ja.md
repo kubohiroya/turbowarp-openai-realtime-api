@@ -1,5 +1,7 @@
 # TurboWarp-OpenAI-Realtime-API
 
+<img src="assets/block-icon.svg" alt="" width="48" height="48">
+
 [English](README.md) | [日本語](README.ja.md)
 
 OpenAI Realtime APIと音声やテキストで会話し、ブロックで書いた関数をモデルから呼び出せるようにするTurboWarp機能拡張です。OpenAIのAPIキーはlocalhostの中継に置いたままで、ブラウザには短時間だけ有効な一時キーしか渡しません。
