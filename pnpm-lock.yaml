@@ -9,20 +9,20 @@ importers:
   .:
     dependencies:
       '@kubohiroya/turbowarp-named-functions':
-        specifier: "^0.1.1"
+        specifier: ^0.1.1
         version: 0.1.1(react@18.3.1)
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.5
         version: 9.39.5
       '@kubohiroya/turbowarp-extension-data-editor':
-        specifier: "^0.2.1"
-        version: 0.2.1(react@18.3.1)
+        specifier: ^0.3.3
+        version: 0.3.3(react@18.3.1)
       '@kubohiroya/turbowarp-extension-manifest':
-        specifier: "^0.3.2"
+        specifier: ^0.3.2
         version: 0.3.2
       '@kubohiroya/vite-plugin-turbowarp-extension':
-        specifier: "^0.6.1"
+        specifier: ^0.6.1
         version: 0.6.1(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(yaml@2.9.1))
       '@types/node':
         specifier: ^24.13.3
@@ -274,6 +274,18 @@ packages:
 
   '@kubohiroya/turbowarp-extension-data-editor@0.2.1':
     resolution: {integrity: sha512-XFI4n7FLVDsdqRidfHpw1Ka2OjPKlK7JrM6S+22KSK8ECIxLLUsa6xkwmlkrAQZw5s8et75eghO4rEkrHisMHw==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      react: ^16.14.0 || ^17 || ^18
+      react-dom: ^16.14.0 || ^17 || ^18
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
+  '@kubohiroya/turbowarp-extension-data-editor@0.3.3':
+    resolution: {integrity: sha512-2HFt8Pi9xe2FkhM2IbIxO8PYESBVKmpZZJT/omgl94y8MCqApP15RkGwNq5OPM2JyE/wQi624hrzeZu6eJIreA==}
     engines: {node: '>=22'}
     peerDependencies:
       react: ^16.14.0 || ^17 || ^18
@@ -1341,6 +1353,18 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@kubohiroya/turbowarp-extension-data-editor@0.2.1(react@18.3.1)':
+    dependencies:
+      '@rjsf/core': 5.24.13(@rjsf/utils@5.24.13(react@18.3.1))(react@18.3.1)
+      '@rjsf/utils': 5.24.13(react@18.3.1)
+      '@rjsf/validator-ajv8': 5.24.13(@rjsf/utils@5.24.13(react@18.3.1))
+      ajv: 8.20.0
+      ajv-formats: 2.1.1(ajv@8.20.0)
+      fast-uri: 3.1.8
+      yaml: 2.9.1
+    optionalDependencies:
+      react: 18.3.1
+
+  '@kubohiroya/turbowarp-extension-data-editor@0.3.3(react@18.3.1)':
     dependencies:
       '@rjsf/core': 5.24.13(@rjsf/utils@5.24.13(react@18.3.1))(react@18.3.1)
       '@rjsf/utils': 5.24.13(react@18.3.1)
