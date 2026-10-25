@@ -2,7 +2,7 @@
 
 <img src="assets/block-icon.svg" alt="" width="48" height="48">
 
-[English](README.md) | [日本語](README.ja.md)
+English | [日本語](README.ja.md)
 
 A TurboWarp extension for talking with the OpenAI Realtime API by voice or text, and for letting the model call functions written in blocks. The OpenAI API key stays in a localhost relay; the browser only receives short-lived ephemeral keys.
 
