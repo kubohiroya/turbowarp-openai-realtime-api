@@ -25,6 +25,7 @@
   ],
   "type": "module",
   "files": [
+    "assets/",
     "dist/",
     "src/",
     "README.md",
