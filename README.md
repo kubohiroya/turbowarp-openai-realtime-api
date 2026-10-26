@@ -45,7 +45,7 @@ The reviewed JavaScript build is committed to this repository, so users do not n
 Install an exact version that you have reviewed:
 
 ```bash
-pnpm add --save-exact @kubohiroya/turbowarp-openai-realtime-api@0.1.1
+pnpm add --save-exact @kubohiroya/turbowarp-openai-realtime-api@0.2.0
 ```
 
 Standalone bundle:
