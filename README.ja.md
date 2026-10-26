@@ -336,9 +336,10 @@ Composition APIをimportしても、単独のTurboWarp機能拡張は登録さ�
 
 ## 開発
 
-Node.js 22.18.0以上と、`packageManager`で指定したpnpmを使います。
+Node.js 24以上と、`packageManager`で指定したpnpmを使います。
 
 ```bash
+npm install --global corepack@latest
 corepack enable
 pnpm install --frozen-lockfile
 pnpm check
