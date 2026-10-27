@@ -293,7 +293,7 @@
         },
         "b16": {
           "opcode": "kubohiroyaopenairealtime_disconnect",
-          "next": "b17",
+          "next": "sample-reset-relay-token",
           "parent": "b47",
           "inputs": {},
           "fields": {},
@@ -303,7 +303,7 @@
         "b17": {
           "opcode": "data_setvariableto",
           "next": "b18",
-          "parent": "b16",
+          "parent": "sample-reset-relay-token",
           "inputs": {
             "VALUE": [
               1,
@@ -806,7 +806,7 @@
         "b49": {
           "opcode": "data_setvariableto",
           "next": "b54",
-          "parent": "b66",
+          "parent": "sample-empty-endpoint",
           "inputs": {
             "VALUE": [
               2,
@@ -1073,7 +1073,7 @@
         },
         "b66": {
           "opcode": "event_whenbroadcastreceived",
-          "next": "b49",
+          "next": "sample-empty-endpoint",
           "parent": null,
           "inputs": {},
           "fields": {
@@ -1392,6 +1392,112 @@
           "topLevel": true,
           "x": 30,
           "y": 710
+        },
+        "sample-reset-relay-token": {
+          "opcode": "kubohiroyaopenairealtime_configureRelay",
+          "next": "b17",
+          "parent": "b16",
+          "inputs": {
+            "ENDPOINT": [
+              1,
+              [
+                10,
+                "http://127.0.0.1:8787"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "sample-empty-endpoint": {
+          "opcode": "control_if",
+          "next": "b49",
+          "parent": "b66",
+          "inputs": {
+            "CONDITION": [
+              2,
+              "sample-empty-endpoint-equals"
+            ],
+            "SUBSTACK": [
+              2,
+              "sample-empty-endpoint-message"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "sample-empty-endpoint-equals": {
+          "opcode": "operator_equals",
+          "next": null,
+          "parent": "sample-empty-endpoint",
+          "inputs": {
+            "OPERAND1": [
+              2,
+              "sample-empty-endpoint-variable"
+            ],
+            "OPERAND2": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "sample-empty-endpoint-variable": {
+          "opcode": "data_variable",
+          "next": null,
+          "parent": "sample-empty-endpoint-equals",
+          "inputs": {},
+          "fields": {
+            "VARIABLE": [
+              "Relay endpoint",
+              "sample-endpoint"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "sample-empty-endpoint-message": {
+          "opcode": "data_setvariableto",
+          "next": "sample-empty-endpoint-stop",
+          "parent": "sample-empty-endpoint",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Pair first"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "sample-empty-endpoint-stop": {
+          "opcode": "control_stop",
+          "next": null,
+          "parent": "sample-empty-endpoint-message",
+          "inputs": {},
+          "fields": {
+            "STOP_OPTION": [
+              "this script",
+              null
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
         }
       },
       "comments": {},
