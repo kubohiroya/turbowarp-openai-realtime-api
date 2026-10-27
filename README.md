@@ -8,6 +8,22 @@ A TurboWarp extension for talking with the OpenAI Realtime API by voice or text,
 
 **User guide:** [English](https://kubohiroya.github.io/turbowarp-openai-realtime-api/)
 
+## Minimal sample
+
+[Open in TurboWarp Editor](https://turbowarp.org/editor?project_url=https%3A%2F%2Fkubohiroya.github.io%2Fturbowarp-openai-realtime-api%2Fsamples%2Frelay-text-reply.sb3) · [Download SB3](https://kubohiroya.github.io/turbowarp-openai-realtime-api/samples/relay-text-reply.sb3)
+
+1. Open the sample, enable **Run without sandbox**, and allow the bundled extension. Green flag only resets local state.
+2. Run your localhost relay, configure the provider there, then click **Configure**. Enter its loopback origin, then the eight-digit one-time pairing code. Never enter an API key. At the final prompt, press Enter with an empty answer to clear the entered code.
+3. Confirm **Relay paired = true**, then click **Start**. One reply is displayed as text and the session ends. Microphone stays off and no audio is played.
+4. Click **Stop / Clear** to end the session and clear settings/results. Before saving or sharing, complete the empty-answer prompt and clear; reopening the original sample also restores blank input values.
+
+**Requirements:** A localhost @kubohiroya/capability-proxy with the openai provider, a billable OpenAI API account and an allowed model, plus a WebRTC browser. Microphone and audio output are off.
+
+**Verification boundary:** Real relay pairing, billed API requests, WebRTC negotiation and real model replies have not been verified. Automated checks cover blank/unpaired state and cancellation only, with browser audio muted. No real relay, API, microphone, or device success is claimed.
+
+Editable sources and maintenance: [samples/README.md](samples/README.md).
+
+
 ## What it does
 
 - Connects a TurboWarp project to the OpenAI Realtime API over WebRTC, with or without the microphone.

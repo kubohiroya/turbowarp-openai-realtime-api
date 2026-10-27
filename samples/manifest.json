@@ -1,0 +1,43 @@
+{
+  "baseURL": "https://kubohiroya.github.io/turbowarp-openai-realtime-api/",
+  "extension": {
+    "id": "kubohiroyaopenairealtime",
+    "bundle": "dist/turbowarp-openai-realtime-api.js",
+    "unsandboxed": true
+  },
+  "samples": [
+    {
+      "name": "relay-text-reply",
+      "title": "OpenAI: one text reply",
+      "instructions": "Green flag resets. Configure your local relay, then click Start/Read. Stop clears settings. No automatic connection.",
+      "checks": [
+        {
+          "variable": "sample-state",
+          "equals": "Ready"
+        },
+        {
+          "variable": "sample-paired",
+          "equals": false
+        },
+        {
+          "variable": "sample-result",
+          "equals": ""
+        },
+        {
+          "variable": "sample-error",
+          "equals": ""
+        },
+        {
+          "variable": "sample-endpoint",
+          "equals": ""
+        },
+        {
+          "variable": "sample-connection",
+          "equals": "disconnected"
+        }
+      ],
+      "requirements": "localhost capability-proxy（openai provider、課金有効なOpenAI APIアカウント、許可済みモデル）、WebRTC対応ブラウザ。API keyはrelayだけに設定。テキスト応答、マイクoff、音声出力off。",
+      "unverified": "実relayペアリング、API課金通信、WebRTC接続と実モデル応答は未検証。"
+    }
+  ]
+}

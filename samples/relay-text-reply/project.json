@@ -1,0 +1,1726 @@
+{
+  "targets": [
+    {
+      "isStage": true,
+      "name": "Stage",
+      "variables": {
+        "sample-state": [
+          "Sample state",
+          ""
+        ],
+        "sample-endpoint": [
+          "Relay endpoint",
+          ""
+        ],
+        "sample-alias": [
+          "Device alias",
+          ""
+        ],
+        "sample-paired": [
+          "Relay paired",
+          ""
+        ],
+        "sample-result": [
+          "Result",
+          ""
+        ],
+        "sample-error": [
+          "Last error",
+          ""
+        ],
+        "sample-connection": [
+          "Connection",
+          ""
+        ]
+      },
+      "lists": {},
+      "broadcasts": {
+        "configure": "Configure",
+        "start": "Start",
+        "stop": "Stop"
+      },
+      "blocks": {
+        "b1": {
+          "opcode": "kubohiroyaopenairealtime_disconnect",
+          "next": "b12",
+          "parent": "b15",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b2": {
+          "opcode": "kubohiroyaopenairealtime_configureRelay",
+          "next": "b3",
+          "parent": "b14",
+          "inputs": {
+            "ENDPOINT": [
+              1,
+              [
+                10,
+                "http://127.0.0.1:8787"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b3": {
+          "opcode": "data_setvariableto",
+          "next": "b4",
+          "parent": "b2",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Relay endpoint",
+              "sample-endpoint"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b4": {
+          "opcode": "data_setvariableto",
+          "next": "b5",
+          "parent": "b3",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Device alias",
+              "sample-alias"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b5": {
+          "opcode": "data_setvariableto",
+          "next": "b6",
+          "parent": "b4",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Result",
+              "sample-result"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b6": {
+          "opcode": "data_setvariableto",
+          "next": "b8",
+          "parent": "b5",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Last error",
+              "sample-error"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b7": {
+          "opcode": "kubohiroyaopenairealtime_isRelayPaired",
+          "next": null,
+          "parent": "b8",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b8": {
+          "opcode": "data_setvariableto",
+          "next": "b10",
+          "parent": "b6",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b7"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Relay paired",
+              "sample-paired"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b9": {
+          "opcode": "kubohiroyaopenairealtime_connectionState",
+          "next": null,
+          "parent": "b10",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b10": {
+          "opcode": "data_setvariableto",
+          "next": "b11",
+          "parent": "b8",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b9"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Connection",
+              "sample-connection"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b11": {
+          "opcode": "data_setvariableto",
+          "next": null,
+          "parent": "b10",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Ready"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b12": {
+          "opcode": "kubohiroyaopenairealtime_setOutputMode",
+          "next": "b13",
+          "parent": "b1",
+          "inputs": {},
+          "fields": {
+            "MODE": [
+              "text",
+              null
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b13": {
+          "opcode": "kubohiroyaopenairealtime_setSessionTimeLimit",
+          "next": "b14",
+          "parent": "b12",
+          "inputs": {
+            "SECONDS": [
+              1,
+              [
+                10,
+                "60"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b14": {
+          "opcode": "kubohiroyaopenairealtime_setInstructions",
+          "next": "b2",
+          "parent": "b13",
+          "inputs": {
+            "TEXT": [
+              1,
+              [
+                10,
+                "Reply briefly in one sentence."
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b15": {
+          "opcode": "event_whenflagclicked",
+          "next": "b1",
+          "parent": null,
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": true,
+          "x": 30,
+          "y": 150
+        },
+        "b16": {
+          "opcode": "kubohiroyaopenairealtime_disconnect",
+          "next": "b17",
+          "parent": "b47",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b17": {
+          "opcode": "data_setvariableto",
+          "next": "b18",
+          "parent": "b16",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Configure"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b18": {
+          "opcode": "sensing_askandwait",
+          "next": "b20",
+          "parent": "b17",
+          "inputs": {
+            "QUESTION": [
+              1,
+              [
+                10,
+                "Local relay origin (blank cancels):"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b19": {
+          "opcode": "sensing_answer",
+          "next": null,
+          "parent": "b20",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b20": {
+          "opcode": "data_setvariableto",
+          "next": "b25",
+          "parent": "b18",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b19"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Relay endpoint",
+              "sample-endpoint"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b21": {
+          "opcode": "data_variable",
+          "next": null,
+          "parent": "b22",
+          "inputs": {},
+          "fields": {
+            "VARIABLE": [
+              "Relay endpoint",
+              "sample-endpoint"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b22": {
+          "opcode": "operator_equals",
+          "next": null,
+          "parent": "b25",
+          "inputs": {
+            "OPERAND1": [
+              2,
+              "b21"
+            ],
+            "OPERAND2": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b23": {
+          "opcode": "data_setvariableto",
+          "next": "b24",
+          "parent": "b25",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Relay endpoint required"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b24": {
+          "opcode": "control_stop",
+          "next": null,
+          "parent": "b23",
+          "inputs": {},
+          "fields": {
+            "STOP_OPTION": [
+              "this script",
+              null
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b25": {
+          "opcode": "control_if",
+          "next": "b27",
+          "parent": "b20",
+          "inputs": {
+            "CONDITION": [
+              2,
+              "b22"
+            ],
+            "SUBSTACK": [
+              2,
+              "b23"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b26": {
+          "opcode": "data_variable",
+          "next": null,
+          "parent": "b27",
+          "inputs": {},
+          "fields": {
+            "VARIABLE": [
+              "Relay endpoint",
+              "sample-endpoint"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b27": {
+          "opcode": "kubohiroyaopenairealtime_configureRelay",
+          "next": "b29",
+          "parent": "b25",
+          "inputs": {
+            "ENDPOINT": [
+              2,
+              "b26"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b28": {
+          "opcode": "kubohiroyaopenairealtime_lastError",
+          "next": null,
+          "parent": "b29",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b29": {
+          "opcode": "data_setvariableto",
+          "next": "b35",
+          "parent": "b27",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b28"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Last error",
+              "sample-error"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b30": {
+          "opcode": "data_variable",
+          "next": null,
+          "parent": "b31",
+          "inputs": {},
+          "fields": {
+            "VARIABLE": [
+              "Last error",
+              "sample-error"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b31": {
+          "opcode": "operator_equals",
+          "next": null,
+          "parent": "b32",
+          "inputs": {
+            "OPERAND1": [
+              2,
+              "b30"
+            ],
+            "OPERAND2": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b32": {
+          "opcode": "operator_not",
+          "next": null,
+          "parent": "b35",
+          "inputs": {
+            "OPERAND": [
+              2,
+              "b31"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b33": {
+          "opcode": "data_setvariableto",
+          "next": "b34",
+          "parent": "b35",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Invalid relay settings"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b34": {
+          "opcode": "control_stop",
+          "next": null,
+          "parent": "b33",
+          "inputs": {},
+          "fields": {
+            "STOP_OPTION": [
+              "this script",
+              null
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b35": {
+          "opcode": "control_if",
+          "next": "b36",
+          "parent": "b29",
+          "inputs": {
+            "CONDITION": [
+              2,
+              "b32"
+            ],
+            "SUBSTACK": [
+              2,
+              "b33"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b36": {
+          "opcode": "sensing_askandwait",
+          "next": "b38",
+          "parent": "b35",
+          "inputs": {
+            "QUESTION": [
+              1,
+              [
+                10,
+                "One-time 8-digit pairing code (never an API key):"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b37": {
+          "opcode": "sensing_answer",
+          "next": null,
+          "parent": "b38",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b38": {
+          "opcode": "kubohiroyaopenairealtime_pairRelay",
+          "next": "b40",
+          "parent": "b36",
+          "inputs": {
+            "CODE": [
+              2,
+              "b37"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b39": {
+          "opcode": "kubohiroyaopenairealtime_lastError",
+          "next": null,
+          "parent": "b40",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b40": {
+          "opcode": "data_setvariableto",
+          "next": "b42",
+          "parent": "b38",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b39"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Last error",
+              "sample-error"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b41": {
+          "opcode": "kubohiroyaopenairealtime_isRelayPaired",
+          "next": null,
+          "parent": "b42",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b42": {
+          "opcode": "data_setvariableto",
+          "next": "b43",
+          "parent": "b40",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b41"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Relay paired",
+              "sample-paired"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b43": {
+          "opcode": "sensing_askandwait",
+          "next": "b45",
+          "parent": "b42",
+          "inputs": {
+            "QUESTION": [
+              1,
+              [
+                10,
+                "Press Enter with an empty answer to clear the entered code."
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b44": {
+          "opcode": "kubohiroyaopenairealtime_connectionState",
+          "next": null,
+          "parent": "b45",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b45": {
+          "opcode": "data_setvariableto",
+          "next": "b46",
+          "parent": "b43",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b44"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Connection",
+              "sample-connection"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b46": {
+          "opcode": "data_setvariableto",
+          "next": null,
+          "parent": "b45",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Configured; check Relay paired"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b47": {
+          "opcode": "event_whenbroadcastreceived",
+          "next": "b16",
+          "parent": null,
+          "inputs": {},
+          "fields": {
+            "BROADCAST_OPTION": [
+              "Configure",
+              "configure"
+            ]
+          },
+          "shadow": false,
+          "topLevel": true,
+          "x": 30,
+          "y": 406
+        },
+        "b48": {
+          "opcode": "kubohiroyaopenairealtime_isRelayPaired",
+          "next": null,
+          "parent": "b49",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b49": {
+          "opcode": "data_setvariableto",
+          "next": "b54",
+          "parent": "b66",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b48"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Relay paired",
+              "sample-paired"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b50": {
+          "opcode": "kubohiroyaopenairealtime_isRelayPaired",
+          "next": null,
+          "parent": "b51",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b51": {
+          "opcode": "operator_not",
+          "next": null,
+          "parent": "b54",
+          "inputs": {
+            "OPERAND": [
+              2,
+              "b50"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b52": {
+          "opcode": "data_setvariableto",
+          "next": "b53",
+          "parent": "b54",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Pair first"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b53": {
+          "opcode": "control_stop",
+          "next": null,
+          "parent": "b52",
+          "inputs": {},
+          "fields": {
+            "STOP_OPTION": [
+              "this script",
+              null
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b54": {
+          "opcode": "control_if",
+          "next": "b55",
+          "parent": "b49",
+          "inputs": {
+            "CONDITION": [
+              2,
+              "b51"
+            ],
+            "SUBSTACK": [
+              2,
+              "b52"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b55": {
+          "opcode": "data_setvariableto",
+          "next": "b56",
+          "parent": "b54",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Connecting (text only)"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b56": {
+          "opcode": "kubohiroyaopenairealtime_setOutputMode",
+          "next": "b57",
+          "parent": "b55",
+          "inputs": {},
+          "fields": {
+            "MODE": [
+              "text",
+              null
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b57": {
+          "opcode": "kubohiroyaopenairealtime_connect",
+          "next": "b59",
+          "parent": "b56",
+          "inputs": {},
+          "fields": {
+            "MICROPHONE": [
+              "off",
+              null
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b58": {
+          "opcode": "kubohiroyaopenairealtime_lastError",
+          "next": null,
+          "parent": "b59",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b59": {
+          "opcode": "data_setvariableto",
+          "next": "b61",
+          "parent": "b57",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b58"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Last error",
+              "sample-error"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b60": {
+          "opcode": "kubohiroyaopenairealtime_connectionState",
+          "next": null,
+          "parent": "b61",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b61": {
+          "opcode": "data_setvariableto",
+          "next": "b65",
+          "parent": "b59",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b60"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Connection",
+              "sample-connection"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b62": {
+          "opcode": "kubohiroyaopenairealtime_isConnected",
+          "next": null,
+          "parent": "b65",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b63": {
+          "opcode": "data_setvariableto",
+          "next": "b64",
+          "parent": "b65",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Waiting for text"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b64": {
+          "opcode": "kubohiroyaopenairealtime_sendText",
+          "next": null,
+          "parent": "b63",
+          "inputs": {
+            "TEXT": [
+              1,
+              [
+                10,
+                "Say hello in one short sentence."
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b65": {
+          "opcode": "control_if",
+          "next": null,
+          "parent": "b61",
+          "inputs": {
+            "CONDITION": [
+              2,
+              "b62"
+            ],
+            "SUBSTACK": [
+              2,
+              "b63"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b66": {
+          "opcode": "event_whenbroadcastreceived",
+          "next": "b49",
+          "parent": null,
+          "inputs": {},
+          "fields": {
+            "BROADCAST_OPTION": [
+              "Start",
+              "start"
+            ]
+          },
+          "shadow": false,
+          "topLevel": true,
+          "x": 30,
+          "y": 558
+        },
+        "b67": {
+          "opcode": "kubohiroyaopenairealtime_lastResponseText",
+          "next": null,
+          "parent": "b68",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b68": {
+          "opcode": "data_setvariableto",
+          "next": "b69",
+          "parent": "b73",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b67"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Result",
+              "sample-result"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b69": {
+          "opcode": "kubohiroyaopenairealtime_disconnect",
+          "next": "b71",
+          "parent": "b68",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b70": {
+          "opcode": "kubohiroyaopenairealtime_connectionState",
+          "next": null,
+          "parent": "b71",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b71": {
+          "opcode": "data_setvariableto",
+          "next": "b72",
+          "parent": "b69",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b70"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Connection",
+              "sample-connection"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b72": {
+          "opcode": "data_setvariableto",
+          "next": null,
+          "parent": "b71",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "One reply complete"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b73": {
+          "opcode": "kubohiroyaopenairealtime_whenResponseDone",
+          "next": "b68",
+          "parent": null,
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": true,
+          "x": 30,
+          "y": 614
+        },
+        "b74": {
+          "opcode": "kubohiroyaopenairealtime_disconnect",
+          "next": "b75",
+          "parent": "b85",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b75": {
+          "opcode": "kubohiroyaopenairealtime_configureRelay",
+          "next": "b76",
+          "parent": "b74",
+          "inputs": {
+            "ENDPOINT": [
+              1,
+              [
+                10,
+                "http://127.0.0.1:8787"
+              ]
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b76": {
+          "opcode": "data_setvariableto",
+          "next": "b77",
+          "parent": "b75",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Relay endpoint",
+              "sample-endpoint"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b77": {
+          "opcode": "data_setvariableto",
+          "next": "b78",
+          "parent": "b76",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Device alias",
+              "sample-alias"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b78": {
+          "opcode": "data_setvariableto",
+          "next": "b79",
+          "parent": "b77",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Result",
+              "sample-result"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b79": {
+          "opcode": "data_setvariableto",
+          "next": "b81",
+          "parent": "b78",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                ""
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Last error",
+              "sample-error"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b80": {
+          "opcode": "kubohiroyaopenairealtime_isRelayPaired",
+          "next": null,
+          "parent": "b81",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b81": {
+          "opcode": "data_setvariableto",
+          "next": "b83",
+          "parent": "b79",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b80"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Relay paired",
+              "sample-paired"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b82": {
+          "opcode": "kubohiroyaopenairealtime_connectionState",
+          "next": null,
+          "parent": "b83",
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "b83": {
+          "opcode": "data_setvariableto",
+          "next": "b84",
+          "parent": "b81",
+          "inputs": {
+            "VALUE": [
+              2,
+              "b82"
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Connection",
+              "sample-connection"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b84": {
+          "opcode": "data_setvariableto",
+          "next": null,
+          "parent": "b83",
+          "inputs": {
+            "VALUE": [
+              1,
+              [
+                10,
+                "Stopped; settings cleared"
+              ]
+            ]
+          },
+          "fields": {
+            "VARIABLE": [
+              "Sample state",
+              "sample-state"
+            ]
+          },
+          "shadow": false,
+          "topLevel": false
+        },
+        "b85": {
+          "opcode": "event_whenbroadcastreceived",
+          "next": "b74",
+          "parent": null,
+          "inputs": {},
+          "fields": {
+            "BROADCAST_OPTION": [
+              "Stop",
+              "stop"
+            ]
+          },
+          "shadow": false,
+          "topLevel": true,
+          "x": 30,
+          "y": 710
+        }
+      },
+      "comments": {},
+      "currentCostume": 0,
+      "costumes": [
+        {
+          "assetId": "backdrop",
+          "name": "instructions",
+          "md5ext": "backdrop.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 240,
+          "rotationCenterY": 180
+        }
+      ],
+      "sounds": [],
+      "volume": 100,
+      "layerOrder": 0,
+      "tempo": 60,
+      "videoTransparency": 50,
+      "videoState": "off",
+      "textToSpeechLanguage": null
+    },
+    {
+      "isStage": false,
+      "name": "Configure",
+      "variables": {},
+      "lists": {},
+      "broadcasts": {},
+      "blocks": {
+        "click": {
+          "opcode": "event_whenthisspriteclicked",
+          "next": "send",
+          "parent": null,
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": true,
+          "x": 30,
+          "y": 30
+        },
+        "send": {
+          "opcode": "event_broadcast",
+          "next": null,
+          "parent": "click",
+          "inputs": {
+            "BROADCAST_INPUT": [
+              1,
+              "message"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "message": {
+          "opcode": "event_broadcast_menu",
+          "next": null,
+          "parent": "send",
+          "inputs": {},
+          "fields": {
+            "BROADCAST_OPTION": [
+              "Configure",
+              "configure"
+            ]
+          },
+          "shadow": true,
+          "topLevel": false
+        }
+      },
+      "comments": {},
+      "currentCostume": 0,
+      "costumes": [
+        {
+          "assetId": "configure",
+          "name": "Configure",
+          "md5ext": "configure.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 62,
+          "rotationCenterY": 22
+        }
+      ],
+      "sounds": [],
+      "volume": 100,
+      "layerOrder": 1,
+      "visible": true,
+      "x": -150,
+      "y": -136,
+      "size": 100,
+      "direction": 90,
+      "draggable": false,
+      "rotationStyle": "all around"
+    },
+    {
+      "isStage": false,
+      "name": "Start",
+      "variables": {},
+      "lists": {},
+      "broadcasts": {},
+      "blocks": {
+        "click": {
+          "opcode": "event_whenthisspriteclicked",
+          "next": "send",
+          "parent": null,
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": true,
+          "x": 30,
+          "y": 30
+        },
+        "send": {
+          "opcode": "event_broadcast",
+          "next": null,
+          "parent": "click",
+          "inputs": {
+            "BROADCAST_INPUT": [
+              1,
+              "message"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "message": {
+          "opcode": "event_broadcast_menu",
+          "next": null,
+          "parent": "send",
+          "inputs": {},
+          "fields": {
+            "BROADCAST_OPTION": [
+              "Start",
+              "start"
+            ]
+          },
+          "shadow": true,
+          "topLevel": false
+        }
+      },
+      "comments": {},
+      "currentCostume": 0,
+      "costumes": [
+        {
+          "assetId": "start",
+          "name": "Start",
+          "md5ext": "start.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 62,
+          "rotationCenterY": 22
+        }
+      ],
+      "sounds": [],
+      "volume": 100,
+      "layerOrder": 2,
+      "visible": true,
+      "x": 0,
+      "y": -136,
+      "size": 100,
+      "direction": 90,
+      "draggable": false,
+      "rotationStyle": "all around"
+    },
+    {
+      "isStage": false,
+      "name": "Stop / Clear",
+      "variables": {},
+      "lists": {},
+      "broadcasts": {},
+      "blocks": {
+        "click": {
+          "opcode": "event_whenthisspriteclicked",
+          "next": "send",
+          "parent": null,
+          "inputs": {},
+          "fields": {},
+          "shadow": false,
+          "topLevel": true,
+          "x": 30,
+          "y": 30
+        },
+        "send": {
+          "opcode": "event_broadcast",
+          "next": null,
+          "parent": "click",
+          "inputs": {
+            "BROADCAST_INPUT": [
+              1,
+              "message"
+            ]
+          },
+          "fields": {},
+          "shadow": false,
+          "topLevel": false
+        },
+        "message": {
+          "opcode": "event_broadcast_menu",
+          "next": null,
+          "parent": "send",
+          "inputs": {},
+          "fields": {
+            "BROADCAST_OPTION": [
+              "Stop",
+              "stop"
+            ]
+          },
+          "shadow": true,
+          "topLevel": false
+        }
+      },
+      "comments": {},
+      "currentCostume": 0,
+      "costumes": [
+        {
+          "assetId": "stop",
+          "name": "Stop / Clear",
+          "md5ext": "stop.svg",
+          "dataFormat": "svg",
+          "rotationCenterX": 62,
+          "rotationCenterY": 22
+        }
+      ],
+      "sounds": [],
+      "volume": 100,
+      "layerOrder": 3,
+      "visible": true,
+      "x": 150,
+      "y": -136,
+      "size": 100,
+      "direction": 90,
+      "draggable": false,
+      "rotationStyle": "all around"
+    }
+  ],
+  "monitors": [
+    {
+      "id": "sample-state",
+      "mode": "default",
+      "opcode": "data_variable",
+      "params": {
+        "VARIABLE": "Sample state"
+      },
+      "spriteName": null,
+      "value": "",
+      "width": 0,
+      "height": 0,
+      "x": 16,
+      "y": 99,
+      "visible": true,
+      "sliderMin": 0,
+      "sliderMax": 100,
+      "isDiscrete": true
+    },
+    {
+      "id": "sample-paired",
+      "mode": "default",
+      "opcode": "data_variable",
+      "params": {
+        "VARIABLE": "Relay paired"
+      },
+      "spriteName": null,
+      "value": "",
+      "width": 0,
+      "height": 0,
+      "x": 16,
+      "y": 127,
+      "visible": true,
+      "sliderMin": 0,
+      "sliderMax": 100,
+      "isDiscrete": true
+    },
+    {
+      "id": "sample-connection",
+      "mode": "default",
+      "opcode": "data_variable",
+      "params": {
+        "VARIABLE": "Connection"
+      },
+      "spriteName": null,
+      "value": "",
+      "width": 0,
+      "height": 0,
+      "x": 16,
+      "y": 155,
+      "visible": true,
+      "sliderMin": 0,
+      "sliderMax": 100,
+      "isDiscrete": true
+    },
+    {
+      "id": "sample-result",
+      "mode": "default",
+      "opcode": "data_variable",
+      "params": {
+        "VARIABLE": "Result"
+      },
+      "spriteName": null,
+      "value": "",
+      "width": 0,
+      "height": 0,
+      "x": 16,
+      "y": 183,
+      "visible": true,
+      "sliderMin": 0,
+      "sliderMax": 100,
+      "isDiscrete": true
+    },
+    {
+      "id": "sample-error",
+      "mode": "default",
+      "opcode": "data_variable",
+      "params": {
+        "VARIABLE": "Last error"
+      },
+      "spriteName": null,
+      "value": "",
+      "width": 0,
+      "height": 0,
+      "x": 16,
+      "y": 211,
+      "visible": true,
+      "sliderMin": 0,
+      "sliderMax": 100,
+      "isDiscrete": true
+    }
+  ],
+  "extensions": [],
+  "meta": {
+    "semver": "3.0.0",
+    "vm": "0.2.0",
+    "agent": "TurboWarp sample"
+  }
+}
