@@ -11,3 +11,4 @@ coverage/
 
 # Private design notes are kept outside the repository.
 docs/
+_site/
