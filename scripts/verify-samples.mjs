@@ -1,3 +1,4 @@
+import {Buffer} from 'node:buffer';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {cp, mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
@@ -101,6 +102,54 @@ test('the sample ships blank settings, has no audio assets, and keeps start acti
     while (block) {
       assert.ok(!/_(pairRelay|connect|startConversation|getStatusField|sendText|speak)$/.test(block.opcode), `External action on green flag: ${block.opcode}`);
       block = block.next ? stage.blocks[block.next] : null;
+    }
+  }
+});
+
+
+test('security metadata precedes executable wrappers and preserves the bundle metadata', async () => {
+  const {withSecurityMetadata} = await import('./build-samples.mjs');
+  const source = '// Name: Sample\n// ID: sample\n// Description: Example\n// By: Example author\n// License: MPL-2.0\n\nthrow new Error("not executed");';
+  const wrapped = `(() => {\n${source}\n})();`;
+  const declaration = {id: 'sample', unsandboxed: true};
+  const generated = withSecurityMetadata(source, declaration, wrapped);
+  const header = generated.slice(0, 16384).match(/^\s*(?:(?:\/\/[^\n]*(?:\n|$))|(?:\/\*[\s\S]*?\*\/)\s*)*/)[0];
+  for (const line of ['// Name: Sample', '// ID: sample', '// Description: Example', '// By: Example author', '// License: MPL-2.0', '// Unsandboxed: required']) {
+    assert.ok(header.includes(line), line);
+  }
+  assert.ok(generated.endsWith(wrapped), 'Original executable code must be unchanged');
+  assert.throws(() => withSecurityMetadata(source, {id: 'other', unsandboxed: true}), /Leading bundle ID/);
+  assert.throws(() => withSecurityMetadata(source, {id: 'sample'}), /Declare the sandbox/);
+  assert.throws(() => withSecurityMetadata('// Unsandboxed: not-needed\n' + source, declaration), /Conflicting sandbox/);
+  assert.match(withSecurityMetadata(source, {id: 'sample', unsandboxed: false}), /\/\/ Unsandboxed: not-needed\n/);
+});
+
+test('every embedded extension in the committed SB3s has visible security metadata', async () => {
+  const manifest = JSON.parse(await readFile(new URL('samples/manifest.json', root), 'utf8'));
+  for (const sample of manifest.samples) {
+    const bytes = await readFile(new URL(`samples/${sample.name}.sb3`, root));
+    let project;
+    for (let offset = 0; bytes.readUInt32LE(offset) === 0x04034b50;) {
+      assert.equal(bytes.readUInt16LE(offset + 8), 0, 'Expected ZIP STORE');
+      const length = bytes.readUInt32LE(offset + 18);
+      const nameEnd = offset + 30 + bytes.readUInt16LE(offset + 26);
+      const dataStart = nameEnd + bytes.readUInt16LE(offset + 28);
+      if (bytes.subarray(offset + 30, nameEnd).toString() === 'project.json') {
+        project = JSON.parse(bytes.subarray(dataStart, dataStart + length).toString());
+        break;
+      }
+      offset = dataStart + length;
+    }
+    assert.ok(project, 'SB3 must contain project.json');
+    for (const [id, url] of Object.entries(project.extensionURLs)) {
+      if (!url.startsWith('data:application/javascript;base64,')) continue;
+      const source = Buffer.from(url.split(',')[1], 'base64').toString();
+      const header = source.slice(0, 16384).match(/^\s*(?:(?:\/\/[^\n]*(?:\n|$))|(?:\/\*[\s\S]*?\*\/)\s*)*/)[0];
+      assert.ok(header.includes(`// ID: ${id}\n`), `${id}: visible ID`);
+      assert.match(header, /^\/\/ Name: .+/m);
+      const declaration = [manifest.extension, ...(manifest.extension.dependencies ?? [])].find(entry => entry.id === id);
+      assert.equal(typeof declaration.unsandboxed, 'boolean');
+      assert.ok(header.includes(`// Unsandboxed: ${declaration.unsandboxed ? 'required' : 'not-needed'}\n`), `${id}: visible sandbox requirement`);
     }
   }
 });
