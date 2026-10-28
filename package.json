@@ -1,8 +1,12 @@
 {
   "name": "@kubohiroya/turbowarp-openai-realtime-api",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A TurboWarp extension for the OpenAI Realtime API, using a localhost relay for credentials.",
-  "author": "Hiroya Kubo <hiroya@cuc.ac.jp>",
+  "author": {
+    "name": "Hiroya Kubo",
+    "email": "hiroya@cuc.ac.jp",
+    "url": "https://github.com/kubohiroya"
+  },
   "license": "MPL-2.0",
   "homepage": "https://github.com/kubohiroya/turbowarp-openai-realtime-api#readme",
   "repository": {
@@ -60,8 +64,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
-    "@kubohiroya/turbowarp-extension-manifest": "^0.4.0",
-    "@kubohiroya/vite-plugin-turbowarp-extension": "^0.9.0",
+    "@kubohiroya/turbowarp-extension-manifest": "^0.5.0",
+    "@kubohiroya/vite-plugin-turbowarp-extension": "^0.10.0",
     "@types/node": "^24.13.3",
     "eslint": "^9.39.5",
     "jiti": "^2.7.0",
@@ -69,7 +73,7 @@
     "typescript-eslint": "^8.66.0",
     "vite": "^8.2.2",
     "vitest": "^5.0.0",
-    "@kubohiroya/turbowarp-extension-data-editor": "^0.4.0"
+    "@kubohiroya/turbowarp-extension-data-editor": "^0.5.0"
   },
   "exports": {
     "./composition": {
@@ -80,7 +84,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@kubohiroya/turbowarp-named-functions": "^0.3.0"
+    "@kubohiroya/turbowarp-named-functions": "^0.4.0"
   },
   "gitHead": "2386a92f281d6285af4c9c61f19e2577453708e5",
   "x-turbowarp-source": {
