@@ -55,7 +55,7 @@ OpenAI Realtime APIと音声やテキストで会話し、ブロックで書い�
 npm packageとして使う場合は、検証済みのversionをexact pinします。
 
 ```bash
-pnpm add --save-exact @kubohiroya/turbowarp-openai-realtime-api@0.3.0
+pnpm add --save-exact @kubohiroya/turbowarp-openai-realtime-api@0.4.0
 ```
 
 ## クイックスタート

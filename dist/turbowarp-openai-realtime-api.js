@@ -534,7 +534,7 @@ var block_definitions_default = {
 	}
 };
 //#endregion
-//#region node_modules/.pnpm/@kubohiroya+turbowarp-named-functions@0.3.0_react@18.3.1/node_modules/@kubohiroya/turbowarp-named-functions/dist/composition.js
+//#region node_modules/.pnpm/@kubohiroya+turbowarp-named-functions@0.4.0_react@18.3.1/node_modules/@kubohiroya/turbowarp-named-functions/dist/composition.js
 /**
 * A small JSON Schema validator for function arguments and returns. It interprets the schema at run time and
 * never generates code, so it also works where `eval` is unavailable (for example Cloudflare Workers).

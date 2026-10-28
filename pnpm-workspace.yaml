@@ -1,14 +1,7 @@
 allowBuilds:
   esbuild: false
 minimumReleaseAgeExclude:
-  - '@kubohiroya/turbowarp-extension-data-editor@0.2.1'
-  - '@kubohiroya/turbowarp-extension-manifest@0.3.2'
-  - '@kubohiroya/turbowarp-named-functions@0.1.1'
-  - '@kubohiroya/vite-plugin-turbowarp-extension@0.6.1'
-  - '@kubohiroya/turbowarp-named-functions@0.2.0'
-  - '@kubohiroya/turbowarp-extension-data-editor@0.3.4'
-  - '@kubohiroya/vite-plugin-turbowarp-extension@0.8.0'
-  - '@kubohiroya/turbowarp-named-functions@0.3.0'
-  - '@kubohiroya/turbowarp-extension-manifest@0.4.0'
-  - '@kubohiroya/vite-plugin-turbowarp-extension@0.9.0'
-  - '@kubohiroya/turbowarp-extension-data-editor@0.4.0'
+  - '@kubohiroya/turbowarp-extension-data-editor@0.2.1 || 0.3.4 || 0.4.0 || 0.5.0'
+  - '@kubohiroya/turbowarp-extension-manifest@0.3.2 || 0.4.0 || 0.5.0'
+  - '@kubohiroya/turbowarp-named-functions@0.1.1 || 0.2.0 || 0.3.0 || 0.4.0'
+  - '@kubohiroya/vite-plugin-turbowarp-extension@0.6.1 || 0.8.0 || 0.9.0 || 0.10.0'

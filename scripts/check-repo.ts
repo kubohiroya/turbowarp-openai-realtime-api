@@ -6,7 +6,7 @@ interface PackageMetadata {
   name: string;
   version: string;
   description?: string;
-  author?: string;
+  author?: {name: string; email: string; url: string};
   license?: string;
   homepage?: string;
   packageManager?: string;
@@ -89,7 +89,17 @@ function checkPolicy() {
 }
 
 function checkPackageMetadata() {
-  const requiredStrings = ['description', 'author', 'license', 'homepage', 'packageManager'] as const;
+  if (
+    typeof packageMetadata.author !== 'object' ||
+    packageMetadata.author === null ||
+    Array.isArray(packageMetadata.author) ||
+    packageMetadata.author.name !== 'Hiroya Kubo' ||
+    packageMetadata.author.email !== 'hiroya@cuc.ac.jp' ||
+    packageMetadata.author.url !== 'https://github.com/kubohiroya'
+  ) {
+    errors.push('package.json author must use the approved name, email, and URL');
+  }
+  const requiredStrings = ['description', 'license', 'homepage', 'packageManager'] as const;
   for (const key of requiredStrings) {
     const value = packageMetadata[key];
     if (typeof value !== 'string' || value.trim().length === 0) {
