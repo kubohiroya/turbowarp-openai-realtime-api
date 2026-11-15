@@ -368,3 +368,51 @@ it('actual getInfo preserves metadata and registers once without owner construct
   instance.getInfo();expect(register).toHaveBeenCalledTimes(options.length);
  } finally {vi.unstubAllGlobals();}
 });
+
+it("registers the same editors again for each project the extension stays loaded for", () => {
+  // Every project load disposes the runtime but keeps the extension loaded.
+  const listeners = new Map<string, Set<() => void>>();
+  const runtime = {
+    on: (event: string, fn: () => void) => {
+      if (!listeners.has(event)) listeners.set(event, new Set());
+      listeners.get(event)!.add(fn);
+    },
+    off: (event: string, fn: () => void) => listeners.get(event)?.delete(fn),
+  };
+  const emit = (event: string) => {
+    for (const fn of [...(listeners.get(event) ?? [])]) fn();
+  };
+  const removes: ReturnType<typeof vi.fn>[] = [];
+  const register = vi.fn<(options: FixedInputEditorOptions) => () => void>(() => {
+    const remove = vi.fn();
+    removes.push(remove);
+    return remove;
+  });
+  const scratch = {
+    gui: { blockEditors: { apiVersion: 1, registerFixedInputEditor: register } },
+  };
+  const visible = options.map((o) => ({
+    opcode: o.opcodes[0]!.slice(o.extensionId.length + 1),
+  }));
+  const dispose = registerFixedInputEditors(scratch, runtime, visible)!;
+  const first = register.mock.calls.map(([o]) => o);
+  expect(first).toHaveLength(options.length);
+  emit("RUNTIME_DISPOSED");
+  expect(removes.map((r) => r.mock.calls.length)).toEqual(
+    first.map(() => 1),
+  );
+  emit("PROJECT_LOADED");
+  expect(register.mock.calls.slice(first.length).map(([o]) => o)).toEqual(
+    first,
+  );
+  emit("PROJECT_LOADED");
+  expect(register).toHaveBeenCalledTimes(first.length * 2);
+  dispose();
+  expect(removes.map((r) => r.mock.calls.length)).toEqual(
+    [...first, ...first].map(() => 1),
+  );
+  emit("RUNTIME_DISPOSED");
+  emit("PROJECT_LOADED");
+  expect(register).toHaveBeenCalledTimes(first.length * 2);
+  expect([...listeners.values()].every((set) => set.size === 0)).toBe(true);
+});

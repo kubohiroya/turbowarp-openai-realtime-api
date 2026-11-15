@@ -157,7 +157,12 @@ interface RegistrationRuntime {
   on?(event: string, listener: () => void): void;
   off?(event: string, listener: () => void): void;
 }
-/** Register only visible static contracts; ordinary composition consumers load no editor runtime. */
+/**
+ * Register only visible static contracts; ordinary composition consumers load no editor runtime.
+ * Every project load disposes the runtime while the extension stays loaded for the next project,
+ * so RUNTIME_DISPOSED only releases the registrations and the next PROJECT_LOADED registers the
+ * same ones again. The returned dispose is final.
+ */
 export function registerFixedInputEditors(
   scratch: unknown,
   runtime: unknown,
@@ -180,6 +185,7 @@ export function registerFixedInputEditors(
     typeof api.registerFixedInputEditor !== "function"
   )
     return undefined;
+  const registerEditor = api.registerFixedInputEditor;
   const visibleOpcodes = new Set(
     visibleBlocks.flatMap((block) => {
       if (typeof block !== "object" || block === null || !("opcode" in block))
@@ -187,25 +193,41 @@ export function registerFixedInputEditors(
       return typeof block.opcode === "string" ? [block.opcode] : [];
     }),
   );
+  const visibleOptions = fixedInputEditorOptions().filter((options) =>
+    options.opcodes.some((opcode) =>
+      visibleOpcodes.has(opcode.slice(extensionId.length + 1)),
+    ),
+  );
   const events = runtime as RegistrationRuntime | undefined;
   const removers: (() => void)[] = [];
-  let active = true;
-  const dispose = () => {
-    if (!active) return;
-    active = false;
-    events?.off?.("RUNTIME_DISPOSED", dispose);
+  let registered = false;
+  let disposed = false;
+  const release = () => {
+    registered = false;
     for (const remove of removers.splice(0).reverse()) remove();
   };
-  try {
-    for (const options of fixedInputEditorOptions()) {
-      if (
-        options.opcodes.some((opcode) =>
-          visibleOpcodes.has(opcode.slice(extensionId.length + 1)),
-        )
-      )
-        removers.push(api.registerFixedInputEditor.call(api, options));
+  const register = () => {
+    if (disposed || registered) return;
+    registered = true;
+    try {
+      for (const options of visibleOptions)
+        removers.push(registerEditor.call(api, options));
+    } catch (error) {
+      release();
+      throw error;
     }
-    events?.on?.("RUNTIME_DISPOSED", dispose);
+  };
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    events?.off?.("RUNTIME_DISPOSED", release);
+    events?.off?.("PROJECT_LOADED", register);
+    release();
+  };
+  try {
+    register();
+    events?.on?.("RUNTIME_DISPOSED", release);
+    events?.on?.("PROJECT_LOADED", register);
   } catch (error) {
     dispose();
     throw error;

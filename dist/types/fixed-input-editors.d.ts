@@ -10,6 +10,11 @@ export declare function readNumber(value: LiteralValue): number;
 export declare function newNumberToken(value: JsonValue): string;
 export declare function candidateValid(_opcode: string, _argument: string, schema: InputSchema, value: LiteralValue): boolean;
 export declare function fixedInputEditorOptions(): readonly FixedInputEditorOptions[];
-/** Register only visible static contracts; ordinary composition consumers load no editor runtime. */
+/**
+ * Register only visible static contracts; ordinary composition consumers load no editor runtime.
+ * Every project load disposes the runtime while the extension stays loaded for the next project,
+ * so RUNTIME_DISPOSED only releases the registrations and the next PROJECT_LOADED registers the
+ * same ones again. The returned dispose is final.
+ */
 export declare function registerFixedInputEditors(scratch: unknown, runtime: unknown, visibleBlocks: readonly unknown[]): (() => void) | undefined;
 export {};
