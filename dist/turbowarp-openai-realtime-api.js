@@ -196,26 +196,50 @@ function fixedInputEditorOptions() {
 		})
 	}));
 }
-/** Register only visible static contracts; ordinary composition consumers load no editor runtime. */
+/**
+* Register only visible static contracts; ordinary composition consumers load no editor runtime.
+* Every project load disposes the runtime while the extension stays loaded for the next project,
+* so RUNTIME_DISPOSED only releases the registrations and the next PROJECT_LOADED registers the
+* same ones again. The returned dispose is final.
+*/
 function registerFixedInputEditors(scratch, runtime, visibleBlocks) {
 	const api = scratch.gui?.blockEditors;
 	if (api?.apiVersion !== 1 || typeof api.registerFixedInputEditor !== "function") return void 0;
+	const registerEditor = api.registerFixedInputEditor;
 	const visibleOpcodes = new Set(visibleBlocks.flatMap((block) => {
 		if (typeof block !== "object" || block === null || !("opcode" in block)) return [];
 		return typeof block.opcode === "string" ? [block.opcode] : [];
 	}));
+	const visibleOptions = fixedInputEditorOptions().filter((options) => options.opcodes.some((opcode) => visibleOpcodes.has(opcode.slice(25))));
 	const events = runtime;
 	const removers = [];
-	let active = true;
-	const dispose = () => {
-		if (!active) return;
-		active = false;
-		events?.off?.("RUNTIME_DISPOSED", dispose);
+	let registered = false;
+	let disposed = false;
+	const release = () => {
+		registered = false;
 		for (const remove of removers.splice(0).reverse()) remove();
 	};
+	const register = () => {
+		if (disposed || registered) return;
+		registered = true;
+		try {
+			for (const options of visibleOptions) removers.push(registerEditor.call(api, options));
+		} catch (error) {
+			release();
+			throw error;
+		}
+	};
+	const dispose = () => {
+		if (disposed) return;
+		disposed = true;
+		events?.off?.("RUNTIME_DISPOSED", release);
+		events?.off?.("PROJECT_LOADED", register);
+		release();
+	};
 	try {
-		for (const options of fixedInputEditorOptions()) if (options.opcodes.some((opcode) => visibleOpcodes.has(opcode.slice(25)))) removers.push(api.registerFixedInputEditor.call(api, options));
-		events?.on?.("RUNTIME_DISPOSED", dispose);
+		register();
+		events?.on?.("RUNTIME_DISPOSED", release);
+		events?.on?.("PROJECT_LOADED", register);
 	} catch (error) {
 		dispose();
 		throw error;
