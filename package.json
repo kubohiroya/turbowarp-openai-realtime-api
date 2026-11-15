@@ -1,6 +1,6 @@
 {
   "name": "@kubohiroya/turbowarp-openai-realtime-api",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A TurboWarp extension for the OpenAI Realtime API, using a localhost relay for credentials.",
   "author": {
     "name": "Hiroya Kubo",
