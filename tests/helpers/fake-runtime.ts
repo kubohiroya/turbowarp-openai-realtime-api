@@ -29,8 +29,9 @@ export class FakeRuntime implements RuntimeLike {
     this.emit('AFTER_EXECUTE');
   }
 
-  public spawnThread(): RuntimeThread {
-    const thread: RuntimeThread = {topBlock: `thread-${this.threads.length}`};
+  /** Starts a thread; pass the hat block id when the thread runs a `define function` script. */
+  public spawnThread(topBlock = `thread-${this.threads.length}`): RuntimeThread {
+    const thread: RuntimeThread = {topBlock};
     this.threads.push(thread);
     return thread;
   }

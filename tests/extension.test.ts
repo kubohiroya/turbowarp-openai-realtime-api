@@ -144,8 +144,8 @@ describe('OpenAIRealtimeExtension', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(runtime.startedHats).toContain(DEFINE_FUNCTION_OPCODE);
 
-    // The VM evaluates the started hat, then runs its script.
-    const thread = runtime.spawnThread();
+    // The VM evaluates the started hat, then runs its script. The thread's top block is the hat.
+    const thread = runtime.spawnThread('hat0');
     expect(extension.defineFunction({NAME: 'other'}, {thread})).toBe(false);
     expect(extension.defineFunction({NAME: 'get_score'}, {thread})).toBe(true);
     expect(extension.functionArgument({PATH: 'player.name'}, {thread})).toBe('Ada');
