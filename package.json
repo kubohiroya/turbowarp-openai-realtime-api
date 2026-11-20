@@ -1,6 +1,6 @@
 {
   "name": "@kubohiroya/turbowarp-openai-realtime-api",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A TurboWarp extension for the OpenAI Realtime API, using a localhost relay for credentials.",
   "author": {
     "name": "Hiroya Kubo",
@@ -91,5 +91,51 @@
     "revision": "2386a92f281d6285af4c9c61f19e2577453708e5",
     "revisionRole": "base-commit",
     "sourceState": "local-release-overlay"
+  },
+  "turbowarpExtension": {
+    "resourceDeclaration": {
+      "schemaVersion": 1,
+      "resources": [
+        {
+          "type": "network",
+          "usage": "required",
+          "purpose": {
+            "en": "Communicate with the local relay and OpenAI Realtime API",
+            "ja": "ローカル中継とOpenAI Realtime APIに接続する"
+          },
+          "data": {
+            "direction": "bidirectional",
+            "content": {
+              "en": "Session requests, conversation text, tool calls/results, enabled microphone input and selected audio/text responses",
+              "ja": "セッション要求、会話テキスト、ツール呼び出し・結果、有効にしたマイク入力、選択した音声・テキスト応答"
+            }
+          }
+        },
+        {
+          "type": "microphone",
+          "usage": "conditional",
+          "purpose": {
+            "en": "Send microphone audio to the AI service",
+            "ja": "マイク音声をAIサービスへ送信する"
+          },
+          "condition": {
+            "en": "When microphone input is enabled for the session",
+            "ja": "セッションのマイク入力を有効にした場合"
+          }
+        },
+        {
+          "type": "audio-output",
+          "usage": "conditional",
+          "purpose": {
+            "en": "Play the AI audio response",
+            "ja": "AIの音声応答を再生する"
+          },
+          "condition": {
+            "en": "When audio responses are selected",
+            "ja": "音声応答を選択した場合"
+          }
+        }
+      ]
+    }
   }
 }
