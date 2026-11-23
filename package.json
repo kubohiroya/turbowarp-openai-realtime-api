@@ -1,6 +1,6 @@
 {
   "name": "@kubohiroya/turbowarp-openai-realtime-api",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "A TurboWarp extension for the OpenAI Realtime API, using a localhost relay for credentials.",
   "author": {
     "name": "Hiroya Kubo",
@@ -73,7 +73,7 @@
     "typescript-eslint": "^8.66.0",
     "vite": "^8.2.2",
     "vitest": "^5.0.0",
-    "@kubohiroya/turbowarp-extension-data-editor": "^0.11.2"
+    "@kubohiroya/turbowarp-extension-data-editor": "^0.11.4"
   },
   "exports": {
     "./composition": {
@@ -84,7 +84,7 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@kubohiroya/turbowarp-named-functions": "^0.6.0"
+    "@kubohiroya/turbowarp-named-functions": "^0.6.2"
   },
   "gitHead": "2386a92f281d6285af4c9c61f19e2577453708e5",
   "x-turbowarp-source": {
